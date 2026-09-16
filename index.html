@@ -1,0 +1,956 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bagel Tennis: о чём говорит чат</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Golos+Text:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js" integrity="sha384-bs/nf9FbdNouRbMiFcrcZfLXYPKiPaGVGplVbv7dLGECccEXDW+S3zjqSKR5ZEaD" crossorigin="anonymous"></script>
+<style>
+  :root {
+    --bg: #faf8f4;
+    --surface: #ffffff;
+    --surface-2: #f2efe7;
+    --text: #17191a;
+    --text-muted: #5c5e55;
+    --text-faint: #8b8d82;
+    --border: #e4e0d3;
+    --accent: #2f7d4f;
+    --accent-ink: #1d5636;
+    --accent-soft: #e3f0e7;
+    --shadow: 0 1px 2px rgba(30,30,20,0.05), 0 8px 24px -12px rgba(30,30,20,0.12);
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #121311;
+      --surface: #1b1c19;
+      --surface-2: #232420;
+      --text: #f3f1ea;
+      --text-muted: #b6b4a7;
+      --text-faint: #85847a;
+      --border: #34352f;
+      --accent: #57c98a;
+      --accent-ink: #8fe0b3;
+      --accent-soft: #1e332a;
+      --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 8px 24px -12px rgba(0,0,0,0.5);
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #121311;
+    --surface: #1b1c19;
+    --surface-2: #232420;
+    --text: #f3f1ea;
+    --text-muted: #b6b4a7;
+    --text-faint: #85847a;
+    --border: #34352f;
+    --accent: #57c98a;
+    --accent-ink: #8fe0b3;
+    --accent-soft: #1e332a;
+    --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 8px 24px -12px rgba(0,0,0,0.5);
+    color-scheme: dark;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: "Golos Text", "PT Sans", "Segoe UI", sans-serif;
+    font-size: 15px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 1120px; margin: 0 auto; padding: 0 16px 80px; }
+  h1, h2, h3 { font-family: "Oswald", "Arial Narrow", sans-serif; font-weight: 600; letter-spacing: 0.01em; text-wrap: balance; margin: 0; }
+  .num { font-variant-numeric: tabular-nums; }
+  a { color: var(--accent-ink); }
+
+  /* ---- hero ---- */
+  .hero { padding: 48px 0 28px; border-bottom: 1px solid var(--border); }
+  .hero .eyebrow { font-size: 12px; text-transform: uppercase; letter-spacing: 0.12em; color: var(--accent-ink); font-weight: 600; margin-bottom: 10px; }
+  .hero h1 { font-size: clamp(28px, 5vw, 42px); line-height: 1.08; }
+  .hero .sub { color: var(--text-muted); margin-top: 10px; font-size: 15px; max-width: 60ch; }
+  .tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin-top: 26px; }
+  .tile { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; box-shadow: var(--shadow); }
+  .tile .v { font-family: "Oswald", sans-serif; font-size: 26px; font-weight: 600; }
+  .tile .l { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+
+  /* ---- sections ---- */
+  section.block { padding: 44px 0; border-bottom: 1px solid var(--border); }
+  section.block:last-of-type { border-bottom: none; }
+  .block h2 { font-size: clamp(22px, 3.4vw, 30px); }
+  .block .kicker { font-size: 12px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-faint); font-weight: 600; margin-bottom: 6px; }
+  .caption { font-size: 13px; color: var(--text-muted); margin-top: 8px; max-width: 70ch; }
+  .grid2 { display: grid; grid-template-columns: 1.3fr 1fr; gap: 24px; align-items: start; }
+  @media (max-width: 760px) { .grid2 { grid-template-columns: 1fr; } }
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 18px; box-shadow: var(--shadow); }
+  .chart-h { position: relative; }
+
+  /* ---- topic cards ---- */
+  .topic-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 12px; margin-top: 18px; }
+  .topic-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 14px 16px; box-shadow: var(--shadow); border-left: 4px solid var(--tc, var(--accent)); }
+  .topic-card .head { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+  .topic-card .name { font-weight: 600; font-size: 14.5px; }
+  .topic-card .emoji { font-size: 18px; margin-right: 6px; }
+  .topic-card .count { font-family: "Oswald", sans-serif; font-size: 20px; font-weight: 600; white-space: nowrap; }
+  .topic-card .share { color: var(--text-muted); font-size: 12px; }
+  .topic-card .terms { display: flex; flex-wrap: wrap; gap: 5px; margin: 10px 0; }
+  .chip { background: var(--surface-2); border-radius: 100px; padding: 2px 9px; font-size: 11.5px; color: var(--text-muted); }
+  .topic-card .quote { font-size: 12.5px; color: var(--text-muted); border-left: 2px solid var(--border); padding-left: 8px; margin-top: 8px; font-style: italic; }
+  .topic-card .quote b { font-style: normal; color: var(--text); }
+  .topic-card details summary { cursor: pointer; font-size: 12px; color: var(--accent-ink); margin-top: 8px; list-style: none; }
+  .topic-card details summary::-webkit-details-marker { display: none; }
+  .topic-card details[open] summary { margin-bottom: 6px; }
+  .topic-card .extra-ex { font-size: 12.5px; color: var(--text-muted); margin-bottom: 8px; }
+  .topic-card .extra-ex b { color: var(--text); }
+  .topic-card .authors { font-size: 12px; color: var(--text-faint); }
+  .fallback-row { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 14px; }
+  .fallback-pill { background: var(--surface-2); border-radius: 10px; padding: 8px 14px; font-size: 13px; color: var(--text-muted); flex: 1 1 160px; }
+  .fallback-pill b { color: var(--text); display: block; font-family: "Oswald", sans-serif; font-size: 17px; }
+
+  /* ---- heatmap ---- */
+  .heatmap { overflow-x: auto; max-width: 100%; }
+  .heatmap-row { display: grid; grid-template-columns: 130px repeat(24, minmax(16px, 1fr)); align-items: center; gap: 2px; }
+  .heatmap-label { font-size: 11px; color: var(--text-muted); padding-right: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .heatmap-cell { aspect-ratio: 1; border-radius: 2px; min-width: 14px; }
+  .heatmap-hours { display: grid; grid-template-columns: 130px repeat(24, minmax(16px, 1fr)); font-size: 9px; color: var(--text-faint); margin-bottom: 4px; }
+  .heatmap-hours span { text-align: center; }
+
+  /* ---- tables ---- */
+  table.data { width: 100%; border-collapse: collapse; font-size: 13px; }
+  table.data th { text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-faint); font-weight: 600; padding: 6px 8px; border-bottom: 1px solid var(--border); }
+  table.data td { padding: 8px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  table.data tr:last-child td { border-bottom: none; }
+  .table-wrap { overflow-x: auto; }
+  .bar-cell { position: relative; }
+  .bar-cell .bg { background: var(--surface-2); border-radius: 4px; height: 14px; position: relative; overflow: hidden; }
+  .bar-cell .fg { background: var(--accent); height: 100%; border-radius: 4px; }
+
+  /* ---- quote list ---- */
+  .quote-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px; margin-bottom: 8px; box-shadow: var(--shadow); }
+  .quote-card .meta { font-size: 11.5px; color: var(--text-faint); display: flex; justify-content: space-between; margin-bottom: 4px; }
+  .quote-card .txt { font-size: 13.5px; }
+  .tag { display: inline-block; background: var(--accent-soft); color: var(--accent-ink); border-radius: 100px; padding: 1px 8px; font-size: 10.5px; font-weight: 600; }
+  .warn-box { background: color-mix(in srgb, #e34948 12%, var(--surface)); border: 1px solid color-mix(in srgb, #e34948 40%, var(--border)); border-radius: 10px; padding: 12px 16px; font-size: 13px; color: var(--text); line-height: 1.5; }
+  .warn-box b { display: block; margin-bottom: 4px; }
+  .venue-quote { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; margin-bottom: 8px; font-size: 12.5px; box-shadow: var(--shadow); }
+  .venue-quote .vname { font-weight: 600; font-size: 13px; margin-bottom: 3px; }
+  .venue-quote.love { border-left: 3px solid var(--accent); }
+  .venue-quote.hate { border-left: 3px solid #e34948; }
+
+  /* ---- word cloud ---- */
+  .cloud { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: baseline; margin-top: 12px; }
+  .cloud span { color: var(--text); font-weight: 600; }
+
+  .btn-row { display: flex; gap: 8px; margin-bottom: 12px; }
+  .btn { border: 1px solid var(--border); background: var(--surface); color: var(--text-muted); border-radius: 100px; padding: 6px 14px; font-size: 12.5px; font-weight: 600; cursor: pointer; font-family: inherit; }
+  .btn.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+
+  footer { padding: 30px 0 10px; color: var(--text-faint); font-size: 12px; }
+  .notes p { margin: 0 0 10px; }
+  .precision-bar { background: var(--surface-2); border-radius: 4px; height: 10px; overflow: hidden; width: 100px; display: inline-block; vertical-align: middle; }
+  .precision-bar div { height: 100%; background: var(--accent); }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <section class="hero">
+    <div class="eyebrow">Анализ Telegram-чата</div>
+    <h1 id="chat-title">Bagel Tennis Community</h1>
+    <p class="sub" id="hero-sub"></p>
+    <div class="tiles" id="hero-tiles"></div>
+  </section>
+
+  <section class="block" id="topics-section">
+    <div class="kicker">Главное</div>
+    <h2>О чём говорят в чате</h2>
+    <p class="caption">Каждое из <span id="cap-human-total" class="num"></span> сообщений участников классифицировано по теме на основе ключевых слов; точность правил проверена вручную (раздел «Методология» внизу страницы).</p>
+    <div class="grid2" style="margin-top:20px;">
+      <div class="card chart-h" style="height:520px;"><canvas id="chart-topics-bar"></canvas></div>
+      <div class="card chart-h" style="height:520px;"><canvas id="chart-topics-donut"></canvas></div>
+    </div>
+    <div class="fallback-row" id="fallback-row"></div>
+
+    <h3 style="margin-top:32px; font-size:18px;">Темы подробно</h3>
+    <div class="topic-grid" id="topic-cards"></div>
+
+    <h3 style="margin-top:36px; font-size:18px;">Динамика тем по месяцам</h3>
+    <div class="btn-row">
+      <button class="btn active" data-mode="pct" id="btn-pct">Доля, %</button>
+      <button class="btn" data-mode="abs" id="btn-abs">Абсолютно</button>
+    </div>
+    <div class="card chart-h" style="height:420px;"><canvas id="chart-topics-area"></canvas></div>
+    <p class="caption" id="dynamics-caption"></p>
+
+    <h3 style="margin-top:36px; font-size:18px;">Темы × время суток</h3>
+    <div class="card"><div id="heatmap-topic-hour"></div></div>
+    <p class="caption">Доля сообщений темы, приходящаяся на каждый час суток (по местному времени экспорта). Тёмная ячейка — час, когда эта тема обсуждается активнее всего.</p>
+
+    <h3 style="margin-top:36px; font-size:18px;">Что обсуждают вместе</h3>
+    <div class="table-wrap"><table class="data" id="table-cooc"></table></div>
+    <p class="caption">Пары тем, чаще всего встречающиеся в одном сообщении (например, обсуждение турнира одновременно с оплатой взноса).</p>
+
+    <h3 style="margin-top:36px; font-size:18px;">Вовлечённость по темам</h3>
+    <div class="card chart-h" style="height:440px;"><canvas id="chart-engagement"></canvas></div>
+    <p class="caption">Среднее число реакций на сообщение по каждой теме (реплики без текста и медиа исключены).</p>
+  </section>
+
+  <section class="block" id="activity-section">
+    <div class="kicker">Ритм чата</div>
+    <h2>Активность во времени</h2>
+    <div class="card chart-h" style="height:340px;"><canvas id="chart-monthly"></canvas></div>
+    <p class="caption">Сообщения людей и авторизованных ботов (Теннис Бот, BagelTennis, канал сообщества) по месяцам.</p>
+    <div class="grid2" style="margin-top:24px;">
+      <div class="card chart-h" style="height:300px;"><canvas id="chart-authors-month"></canvas></div>
+      <div class="card"><div id="tiles-yearly" class="tiles"></div></div>
+    </div>
+    <h3 style="margin-top:32px; font-size:18px;">День недели × час</h3>
+    <div class="card"><div id="heatmap-weekday-hour"></div></div>
+    <h3 style="margin-top:32px; font-size:18px;">Самые активные дни</h3>
+    <div class="table-wrap"><table class="data" id="table-busiest"></table></div>
+  </section>
+
+  <section class="block" id="people-section">
+    <div class="kicker">Участники</div>
+    <h2>Кто пишет в чат</h2>
+    <div class="grid2">
+      <div class="card chart-h" style="height:520px;"><canvas id="chart-top-authors"></canvas></div>
+      <div>
+        <div class="tiles" id="tiles-concentration" style="margin-bottom:12px;"></div>
+        <div class="card chart-h" style="height:220px;"><canvas id="chart-author-buckets"></canvas></div>
+      </div>
+    </div>
+    <h3 style="margin-top:32px; font-size:18px;">Любимцы чата</h3>
+    <p class="caption" style="margin-top:-4px;">Авторы с ≥100 сообщениями и наибольшим средним числом реакций на сообщение.</p>
+    <div class="table-wrap"><table class="data" id="table-favorites"></table></div>
+  </section>
+
+  <section class="block" id="engagement-section">
+    <div class="kicker">Реакции и ответы</div>
+    <h2>Что цепляет</h2>
+    <div class="grid2">
+      <div class="card chart-h" style="height:380px;"><canvas id="chart-emoji"></canvas></div>
+      <div class="tiles" id="tiles-reply"></div>
+    </div>
+    <h3 style="margin-top:32px; font-size:18px;">Самые обсуждаемые сообщения</h3>
+    <div id="list-reacted"></div>
+    <h3 style="margin-top:28px; font-size:18px;">Самые обсуждаемые опросы</h3>
+    <div class="table-wrap"><table class="data" id="table-polls"></table></div>
+  </section>
+
+  <section class="block" id="sentiment-section">
+    <div class="kicker">Эмоции</div>
+    <h2>Тональность разговоров</h2>
+    <div class="warn-box">
+      <b>⚠️ Самый ненадёжный раздел на странице.</b>
+      <span id="sentiment-warning-text"></span>
+    </div>
+
+    <div class="tiles" id="tiles-sentiment-mix" style="margin-top:18px;"></div>
+
+    <h3 style="margin-top:28px; font-size:18px;">🎾 Любимые и нелюбимые корты</h3>
+    <p class="caption" style="margin-top:-4px;">Средняя тональность сообщений, упоминающих каждую площадку (только площадки с ≥10 упоминаниями).</p>
+    <div class="grid2" style="margin-top:10px;">
+      <div class="card chart-h" style="height:300px;"><canvas id="chart-venue-sentiment"></canvas></div>
+      <div id="venue-quotes"></div>
+    </div>
+
+    <h3 style="margin-top:32px; font-size:18px;">Тональность по темам</h3>
+    <div class="card chart-h" style="height:460px;"><canvas id="chart-sentiment-topic"></canvas></div>
+    <p class="caption">Средний балл тональности (позитив минус негатив на сообщение) по каждой теме. Единственная тема с отрицательным средним — «Травмы и здоровье», что ожидаемо.</p>
+
+    <h3 style="margin-top:32px; font-size:18px;">Тональность во времени</h3>
+    <div class="card chart-h" style="height:300px;"><canvas id="chart-sentiment-month"></canvas></div>
+
+    <h3 style="margin-top:32px; font-size:18px;">«Горячие» сообщения получают больше реакций — независимо от знака</h3>
+    <div class="card chart-h" style="height:280px;"><canvas id="chart-heat-magnitude"></canvas></div>
+    <p class="caption">Среднее число реакций на сообщение по числу эмоционально окрашенных слов в нём (0, 1, 2, 3+). Чем «заряженнее» текст — тем больше реакций, независимо от того, позитивный он или негативный.</p>
+
+    <div class="grid2" style="margin-top:28px;">
+      <div>
+        <h3 style="font-size:16px; margin-bottom:10px;">Самые негативные сообщения</h3>
+        <div id="list-negative"></div>
+      </div>
+      <div>
+        <h3 style="font-size:16px; margin-bottom:10px;">Самые позитивные сообщения</h3>
+        <div id="list-positive"></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="block" id="media-section">
+    <div class="kicker">Контент</div>
+    <h2>Медиа и ссылки</h2>
+    <div class="grid2">
+      <div class="card chart-h" style="height:340px;"><canvas id="chart-media"></canvas></div>
+      <div class="card chart-h" style="height:340px;"><canvas id="chart-mentions"></canvas></div>
+    </div>
+  </section>
+
+  <section class="block" id="bot-section">
+    <div class="kicker">Автоматизация</div>
+    <h2>Теннис Бот и рейтинговые игры</h2>
+    <p class="caption">Отдельно от тем выше: посты бота Теннис Бот, BagelTennis и канала сообщества — <span id="bot-total" class="num"></span> сообщений, исключённых из тематической статистики.</p>
+    <div class="grid2" style="margin-top:14px;">
+      <div class="card chart-h" style="height:320px;"><canvas id="chart-bot-month"></canvas></div>
+      <div class="card chart-h" style="height:320px;"><canvas id="chart-bot-city"></canvas></div>
+    </div>
+    <h3 style="margin-top:28px; font-size:18px;">Самые активные игроки бота</h3>
+    <div class="card chart-h" style="height:400px;"><canvas id="chart-bot-players"></canvas></div>
+
+    <h3 style="margin-top:36px; font-size:18px;">🏸 Счёт разобран: какие матчи обсуждают</h3>
+    <p class="caption" style="margin-top:-4px;">
+      Разобрано <span id="ms-parsed" class="num"></span> из <span id="ms-total" class="num"></span> сообщений с результатом матча
+      (остальное — текстовые итоги турниров без структурированного счёта). «Обсуждение» матча = реакции на сам пост бота + прямые ответы на него.
+    </p>
+
+    <h4 style="font-size:15px; margin:20px 0 8px;">Самые обсуждаемые матчи</h4>
+    <div id="list-discussed-matches"></div>
+
+    <h4 style="font-size:15px; margin:28px 0 8px;">Счёт и накал обсуждения</h4>
+    <div class="card chart-h" style="height:280px;"><canvas id="chart-score-discussion"></canvas></div>
+    <p class="caption" id="score-discussion-caption"></p>
+
+    <h4 style="font-size:15px; margin:28px 0 8px;">🔥 Главные соперничества</h4>
+    <p class="caption" style="margin-top:-4px;">Пары игроков-одиночников (не пары/микст), сыгравшие друг с другом ≥3 раз.</p>
+    <div class="table-wrap"><table class="data" id="table-rivalries"></table></div>
+
+    <div class="grid2" style="margin-top:16px;">
+      <div class="card" id="rivalry-loudest"></div>
+      <div class="card" id="rivalry-closest"></div>
+    </div>
+  </section>
+
+  <section class="block" id="vocab-section">
+    <div class="kicker">Словарь</div>
+    <h2>О чём говорят словами</h2>
+    <div class="cloud" id="word-cloud"></div>
+    <div class="grid2" style="margin-top:22px;">
+      <div>
+        <h3 style="font-size:16px; margin-bottom:10px;">Корты и площадки</h3>
+        <div class="card chart-h" style="height:260px;"><canvas id="chart-venues"></canvas></div>
+      </div>
+      <div>
+        <h3 style="font-size:16px; margin-bottom:10px;">Упоминания топ-игроков ATP/WTA</h3>
+        <div class="card chart-h" style="height:260px;"><canvas id="chart-pros"></canvas></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="block" id="methodology-section">
+    <div class="kicker">Как это устроено</div>
+    <h2>Методология и точность</h2>
+    <div class="notes" id="notes-text"></div>
+    <h3 style="margin-top:22px; font-size:16px;">Точность классификации по темам</h3>
+    <p class="caption" style="margin-top:-4px;">Проверено вручную на 25 случайных совпадениях по каждой теме.</p>
+    <div class="table-wrap"><table class="data" id="table-precision"></table></div>
+  </section>
+
+  <footer>
+    Сформировано автоматически из экспорта Telegram · <span id="footer-range"></span>
+  </footer>
+
+</div>
+
+<script id="stats-data" type="application/json">{"meta": {"chat_title": "🎾 Bagel Tennis Community Белград Нови Сад и Панчево", "members": 1136, "generated_at": "2026-09-16T15:08:43.139491", "first_msg": "2023-02-16", "last_msg": "2026-09-16", "days_span": 1308, "total_msgs": 143008, "human_msgs": 109755, "bot_msgs": 33253, "human_text_msgs": 100675, "authors": 684, "authors_active_2026": 338, "reply_share": 0.6156, "reactions_total": 282810, "median_text_len": 39, "polls": 525}, "topics": [{"key": "other", "label_ru": "Другое / неклассифицировано", "emoji": "❓", "color": "#d4d4d8", "count": 23088, "share": 0.2104, "count_multi": 23088, "avg_reactions": 1.363, "reply_rate": 0.4497, "avg_len": 47.0, "top_authors": [["Semyon Rostomyan", 1723], ["Alexandr Shleyko", 1452], ["Никита Черемисин", 1441], ["Di", 1396], ["Alex", 1133]], "top_terms": [], "examples": [{"id": 119157, "author": "Eugenia Eremina", "date": "2026-04-18", "text": "Посмотрите, СКОЛЬКО НАС!\nНикита @nikitacheful спасибо тебе огромное, сегодня было невероятно круто (впрочем, как и всегда)", "reactions": 80}, {"id": 120058, "author": "Natalia Safronenko", "date": "2026-04-20", "text": "Хоть и без интервью , но @nikitacheful это было супер кайф 😎 спасибо большое ☺️❤️ ну и конечно спасибо Косте и Саше 💃  и Валентину🎤", "reactions": 60}, {"id": 69856, "author": "Peter Q", "date": "2025-09-07", "text": "Еще раз скажу, но уже во всеуслышание:\n\n@nikitacheful спасибо огромное! Мероприятие — огонь просто! Было классно и поучаствовать, и побыть зрителем.\n\nТы делаешь больше и важное дело! И делаешь его хор", "reactions": 55}], "is_fallback": true}, {"key": "tournaments", "label_ru": "Турниры, лиги, соревнования", "emoji": "🏆", "color": "#f59e0b", "count": 14040, "share": 0.1279, "count_multi": 16796, "avg_reactions": 2.066, "reply_rate": 0.7255, "avg_len": 96.4, "top_authors": [["Никита Черемисин", 3056], ["Alexandr Shleyko", 760], ["Di", 632], ["Artem Arkhipov", 612], ["Semyon Rostomyan", 511]], "top_terms": [["турнир", 1734], ["лига", 1226], ["nikitacheful", 1002], ["турнира", 852], ["финал", 533], ["турнире", 528], ["лиги", 510], ["играть", 469], ["никита", 468], ["белграде", 464], ["турниры", 400], ["лигу", 394]], "examples": [{"id": 48301, "author": "Никита Черемисин", "date": "2025-04-14", "text": "Смотрите, Аня уехала в Мск и уже там разрывает местные турниры❤️", "reactions": 70}, {"id": 42390, "author": "Никита Черемисин", "date": "2025-02-16", "text": "Так, забыл сказать))\n\nЛучший лук микст турнира уходит этим феечкам\nОлегу и Стаси\n\nДавайте накидаем им лайков :)) \nРебята прям постарались", "reactions": 68}, {"id": 39612, "author": "Никита Черемисин", "date": "2025-01-20", "text": "Стартуем лигу🔥\n\nВ 5-м сезоне лиги мы объединились с рестораном AUT Bistro, который открыл Паша Щербинин @Dzirtik \nВ рамках этой коллаборации запускаем новый сезон игр!\n\nПобедителей ждут подарочные деп", "reactions": 67}], "is_fallback": false}, {"key": "chatter", "label_ru": "Короткие реплики", "emoji": "💭", "color": "#94a3b8", "count": 11120, "share": 0.1013, "count_multi": 11120, "avg_reactions": 0.907, "reply_rate": 0.5017, "avg_len": 11.2, "top_authors": [["Никита Черемисин", 849], ["Semyon Rostomyan", 790], ["Di", 640], ["Sasha", 591], ["Alexandr Shleyko", 589]], "top_terms": [], "examples": [], "is_fallback": true}, {"key": "media_only", "label_ru": "Только медиа (фото/стикеры/видео)", "emoji": "🖼️", "color": "#cbd5e1", "count": 9080, "share": 0.0827, "count_multi": 9080, "avg_reactions": 2.015, "reply_rate": 0.309, "avg_len": 0.0, "top_authors": [["Никита Черемисин", 2749], ["Sasha", 570], ["Di", 540], ["Alex", 446], ["Александр Зайцев", 438]], "top_terms": [], "examples": [], "is_fallback": true}, {"key": "match_talk", "label_ru": "Обсуждение сыгранных матчей", "emoji": "🗣️", "color": "#eab308", "count": 7295, "share": 0.0665, "count_multi": 9847, "avg_reactions": 1.461, "reply_rate": 0.7635, "avg_len": 76.9, "top_authors": [["Никита Черемисин", 962], ["Alexandr Shleyko", 547], ["Di", 500], ["Semyon Rostomyan", 387], ["Sasha", 305]], "top_terms": [["матч", 1140], ["играл", 590], ["матча", 362], ["играли", 352], ["матчей", 299], ["матчи", 294], ["сыграли", 246], ["проиграл", 243], ["геймов", 222], ["надо", 210], ["сыграл", 200], ["выиграть", 187]], "examples": [{"id": 53668, "author": "Никита Черемисин", "date": "2025-06-01", "text": "Вот это турнирный день сегодня ребята выдали 💪\n\nНа турнире до 400 много уникальных событий произошло \n\n- Впервые состоялся женский финал, девушки выбили всех парней по пути к трофею \n- Супер сбалансир", "reactions": 70}, {"id": 35953, "author": "d", "date": "2024-12-14", "text": "ребятки, так как завтра я уезжаю куда подальше от этой довольной морды с сертификатом, хотел сказать пару слов на прощание \n\nНиките - огромное спасибо и респект за такое комьюнити, хоть Белград как го", "reactions": 60}, {"id": 50526, "author": "Никита Черемисин", "date": "2025-05-06", "text": "Всем привет, завтра состоится показательный матч тренеров🔥\n⚡️ Филипп Орловский\n⚡️ Андрей Ландграф\n\nНачнем матч в 10:00, запустим трансляцию на YouTube(надеюсь интернет потянет)\nОтправлю ссылку сюда\n\nК", "reactions": 50}], "is_fallback": false}, {"key": "courts_venues", "label_ru": "Корты, бронирование, площадки", "emoji": "🏟️", "color": "#10b981", "count": 6215, "share": 0.0566, "count_multi": 8174, "avg_reactions": 1.277, "reply_rate": 0.6862, "avg_len": 69.1, "top_authors": [["Никита Черемисин", 609], ["Alexandr Shleyko", 370], ["Semyon Rostomyan", 297], ["Ilia Ivanov", 257], ["Artem Arkhipov", 211]], "top_terms": [["корт", 933], ["корты", 621], ["корте", 349], ["привет", 320], ["корта", 252], ["хард", 232], ["кортах", 225], ["кортов", 214], ["играть", 171], ["надо", 166], ["грунт", 143], ["поиграть", 139]], "examples": [{"id": 16995, "author": "Никита Черемисин", "date": "2024-04-11", "text": "Друзья, долго готовили к запуску новый проект и теперь можно о нём говорить🔥🔥🔥\n\nУ нашего комьюнити на летний сезон появились корты!\nBagel Court в Белграде\n\nЭто про нас:\n– можешь забронировать онлайн\n–", "reactions": 86}, {"id": 66440, "author": "Никита Черемисин", "date": "2025-08-20", "text": "Друзья, еще на ночь небольшая новость\n\nМногие из вас уже играют на кортах TK Mladost, которые находятся недалеко от Ады\n\nУдалось договориться с владельцем клуба и подключить онлайн бронирование \n\nТепе", "reactions": 47}, {"id": 18594, "author": "Никита Черемисин", "date": "2024-05-01", "text": "Друзья, сегодня официально Bagel корты открыты!!🔥️️️️️️🔥️️️️️️🔥️️️️️️\n\nС 3-го раза😎️️️️️️\n\nБронируйте удобный слот по ссылке: https://n1088554.alteg.io/\n\nПриходите играть матчи лиг, спарринги, дружеск", "reactions": 46}], "is_fallback": false}, {"key": "social_offtopic", "label_ru": "Общение, оффтоп, встречи", "emoji": "💬", "color": "#a855f7", "count": 6003, "share": 0.0547, "count_multi": 8444, "avg_reactions": 1.511, "reply_rate": 0.7823, "avg_len": 63.2, "top_authors": [["Никита Черемисин", 662], ["Alexandr Shleyko", 431], ["Semyon Rostomyan", 412], ["Di", 281], ["Alex", 264]], "top_terms": [["падел", 381], ["работает", 317], ["пиво", 193], ["надо", 188], ["победу", 170], ["теннис", 167], ["играть", 130], ["победы", 130], ["поздравляем", 114], ["работать", 112], ["победой", 97], ["победа", 90]], "examples": [{"id": 51307, "author": "Evgeniy Romanov", "date": "2025-05-14", "text": "@nikitacheful Никита, с днём рождения! Ты отличный организатор, спасибо тебе за твою работу! Желаю больших успехов в спорте и бизнесе, крепкого здоровья и надёжных людей рядом! 🚀💛", "reactions": 87}, {"id": 19304, "author": "Igor Kolodkin", "date": "2024-05-14", "text": "@nikitacheful с днем рождения 🎉🎉🎉!\n\nЖелаю нескончаемого развития, успешных инициатив, удовольствия от процесса, ну и здоровья, конечно 💪💪💪\n\nСпасибо, что ты есть) 👏", "reactions": 68}, {"id": 48402, "author": "Никита Черемисин", "date": "2025-04-15", "text": "Друзья, еще одно небольшое объявление на сегодня\n\nАндрей Архаров @ArkharovAndrei один из первых участников коммьюнити, буквально 3 недели назад открыл кальянную LoFi Lounge\n\nХочу поддержать его, и рас", "reactions": 64}], "is_fallback": false}, {"key": "gear", "label_ru": "Инвентарь и экипировка", "emoji": "🎒", "color": "#06b6d4", "count": 5990, "share": 0.0546, "count_multi": 6932, "avg_reactions": 1.217, "reply_rate": 0.7222, "avg_len": 79.5, "top_authors": [["Никита Черемисин", 370], ["Semyon Rostomyan", 370], ["Alexandr Shleyko", 353], ["Sasha", 249], ["Di", 211]], "top_terms": [["ракетку", 540], ["ракетки", 458], ["ракетка", 332], ["струны", 314], ["мячи", 248], ["ракеткой", 247], ["привет", 200], ["отдам", 198], ["надо", 183], ["корт", 180], ["играть", 158], ["мячей", 140]], "examples": [{"id": 57064, "author": "Никита Черемисин", "date": "2025-06-23", "text": "Так, новость – я нашел в Сербии травяной корт – 1шт\nПока не скажу где\n\nДумаю, что туда можно сгонять поиграть во всем белом и офиц мячиками уимблдона \nКто готов выделить день и поехать сыграть на трав", "reactions": 50}, {"id": 31547, "author": "Nick Malykh", "date": "2024-10-26", "text": "С днем рождения, дорогой @artyom_zhuravlev ! \nПусть корты будут ровными, подачи эйсами, а новые ракетки сами приезжали к тебе уже натянутыми 🙌🏻", "reactions": 47}, {"id": 71081, "author": "Di", "date": "2025-09-19", "text": "Отец знакомого работает в ТеннисБоте. Сегодня срочно вызвали на совещание. Вернулся поздно и ничего не объяснил. Сказал лишь брать ракетку и идти играть с отрицательным рейтингом. Сейчас едем на корты", "reactions": 45}], "is_fallback": false}, {"key": "rating_bot", "label_ru": "Рейтинг и Теннис Бот", "emoji": "🤖", "color": "#8b5cf6", "count": 5979, "share": 0.0545, "count_multi": 8181, "avg_reactions": 1.2, "reply_rate": 0.7423, "avg_len": 68.3, "top_authors": [["Никита Черемисин", 502], ["Di", 417], ["Alexandr Shleyko", 392], ["Semyon Rostomyan", 307], ["Sasha", 299]], "top_terms": [["рейтинг", 940], ["рейтинга", 427], ["коинов", 312], ["коины", 214], ["надо", 207], ["ставки", 195], ["рейтингом", 147], ["сила", 146], ["рейтингу", 144], ["играть", 131], ["очков", 130], ["теннис", 124]], "examples": [{"id": 77648, "author": "Никита Черемисин", "date": "2025-10-30", "text": "Братва, у Кирилла @Sminerino , создателя мини аппа @bagel_tennis_bot сегодня День Рождение:)\nДавайте поздравим этого талантливого парня, накидаем смайликов/реакций", "reactions": 90}, {"id": 59202, "author": "Alexandr Shleyko", "date": "2025-07-06", "text": "Carlos Alcaraz выиграл у Андрея Рублева в 🏴󠁧󠁢󠁥󠁮󠁧󠁿 Лондон #счёт\n6:7 (5-7) 6:3 6:4 6:4\n\n12014 📈 12043 (+29)\n11565 📉 11554 (-11)\n\n3 - 2\n\n\n📱🍏 Матч внесён через iPhone-приложение", "reactions": 52}, {"id": 146323, "author": "Di", "date": "2026-09-14", "text": "Ребят, всем привет\n\nЯ наконец-то допилил свое приложение для тенниса, оно помогает вести счет, собирает статистику, анализирует игру и дает советы во время матчей 🙂\n\nВдохновлялся конечно же SwingVisio", "reactions": 40}], "is_fallback": false}, {"key": "community_admin", "label_ru": "Организация сообщества, чат, каналы", "emoji": "📣", "color": "#f97316", "count": 4233, "share": 0.0386, "count_multi": 5598, "avg_reactions": 1.941, "reply_rate": 0.7175, "avg_len": 74.3, "top_authors": [["Никита Черемисин", 446], ["Alexandr Shleyko", 299], ["Di", 280], ["Semyon Rostomyan", 253], ["Sasha", 163]], "top_terms": [["комьюнити", 269], ["бейгл", 243], ["bagel", 233], ["instagram", 175], ["reel", 144], ["igsh", 139], ["надо", 135], ["опрос", 108], ["теннис", 93], ["никита", 93], ["tennis", 85], ["предложение", 82]], "examples": [{"id": 120076, "author": "Valentin Popov", "date": "2026-04-20", "text": "Ребята, ещё раз спасибо огромное всем и каждому за вовлечение, инициативность и зрительскую самоотдачу и экспрессию.\n\nСпасибо игрокам за сверхъестественный уровень тенниса, драму и такие сюжетные пово", "reactions": 125}, {"id": 130630, "author": "Mikhail Saskovets", "date": "2026-06-17", "text": "Ребята, привет!\n\nНезаметно пролетел месяц, и вот я уже снова сижу в самолете, а значит время для моих любимых сентиментов настало) Я хочу сказать огромное спасибо каждому, с кем мне удалось провести в", "reactions": 73}, {"id": 132828, "author": "Sofia", "date": "2026-07-01", "text": "Любимый мой чат во всем телеграмме, сегодня мой последний день в Сербии после 3 лет невероятного теннисного, социального, мемного опыта со всеми вами! Я безумно благодарна и восхищаюсь творением нашег", "reactions": 72}], "is_fallback": false}, {"key": "coaching_technique", "label_ru": "Тренировки, техника, тренеры", "emoji": "🎾", "color": "#14b8a6", "count": 4088, "share": 0.0372, "count_multi": 5362, "avg_reactions": 1.325, "reply_rate": 0.7524, "avg_len": 77.6, "top_authors": [["Alexandr Shleyko", 282], ["Никита Черемисин", 264], ["Semyon Rostomyan", 245], ["Di", 205], ["Ilia Ivanov", 154]], "top_terms": [["подача", 193], ["подачи", 181], ["подачу", 169], ["тренер", 145], ["надо", 134], ["играть", 130], ["тренировки", 113], ["тренера", 90], ["подаче", 89], ["удар", 83], ["тренировку", 62], ["удара", 60]], "examples": [{"id": 50664, "author": "Никита Черемисин", "date": "2025-05-09", "text": "Вчера завершился 7-й теннисный Bagel Camp 🔥\nЭто было легендарно, один из лучших выездом, которые у нас были❤️\n\n– Провели на корте более 50 часов\n– Работали над техникой, тактикой, психологией\n– Отдель", "reactions": 61}, {"id": 113214, "author": "Anastasija Shcherbinina", "date": "2026-03-31", "text": "Если ты читаешь это сообщение, значит я уже в самолёте. Прости, что не сказала об этом лично. Я не умею и не хочу учиться прощаться. Спасибо тебе за время, проведённое совместно на корте. Это было Лег", "reactions": 53}, {"id": 142559, "author": "Sofia Batalova", "date": "2026-08-22", "text": "Ребята, всем привет! \n\nСо мной и Аней, пару недель назад, произошла очень грустная, особенно тяжёлая для нас ситуация - обокрали тренерскую на Црвене звезде со всеми нашими ракетками (11 штук) и даже ", "reactions": 44}], "is_fallback": false}, {"key": "rules_disputes", "label_ru": "Правила, судейство, споры", "emoji": "⚖️", "color": "#ef4444", "count": 2731, "share": 0.0249, "count_multi": 3584, "avg_reactions": 1.161, "reply_rate": 0.7807, "avg_len": 67.7, "top_authors": [["Alexandr Shleyko", 287], ["Никита Черемисин", 195], ["Semyon Rostomyan", 160], ["Di", 151], ["Sasha", 127]], "top_terms": [["правильно", 211], ["честно", 147], ["правила", 110], ["надо", 87], ["правило", 71], ["понимаю", 69], ["снялся", 69], ["судья", 66], ["играть", 59], ["этого", 50], ["такое", 49], ["быть", 47]], "examples": [{"id": 109459, "author": "Sofia", "date": "2026-03-19", "text": "Бляяяяя я заболталась и неправильно внесла, я проиграла 4:6 4:6, запрос на отмену счета отправлен @GGSTR83 ПРОШУ ПРОЩЕНИЯ", "reactions": 21}, {"id": 23996, "author": "Никита Черемисин", "date": "2024-07-19", "text": "Турнир 1600–2000 21 июля (ВС) в Белграде🔥\n\nПодробности по ссылке: https://telegra.ph/Turnir-sily-16002000-v-Belgrade-28-aprelya-04-26\n\nСтарт игр в 14:00\nЛокация: https://maps.app.goo.gl/DrNmRME86Bqi4z", "reactions": 20}, {"id": 138653, "author": "Sergey Bortsov", "date": "2026-07-30", "text": "мне Паша Борисов тоже так сказал после осмотра", "reactions": 20}], "is_fallback": false}, {"key": "pro_tennis", "label_ru": "Профессиональный теннис (ATP/WTA)", "emoji": "📺", "color": "#ec4899", "count": 2693, "share": 0.0245, "count_multi": 3395, "avg_reactions": 1.412, "reply_rate": 0.6639, "avg_len": 64.0, "top_authors": [["Никита Черемисин", 221], ["Sasha", 216], ["Di", 188], ["Alexandr Shleyko", 187], ["Semyon Rostomyan", 93]], "top_terms": [["трансляцию", 174], ["джокович", 135], ["трансляции", 131], ["трансляция", 123], ["синнер", 120], ["медведев", 92], ["зверев", 77], ["джоковича", 75], ["синнера", 61], ["рублев", 58], ["зверева", 54], ["алькарас", 52]], "examples": [{"id": 33280, "author": "Dmitrii Sentsov", "date": "2024-11-14", "text": "На правах похвастаться )) у меня доча нарисовала Мансуори на ATP в Белграде, задарили ему скетч а он у себя в Инсте выложил", "reactions": 51}, {"id": 120065, "author": "Sergey Bortsov", "date": "2026-04-20", "text": "спасибо огромное за трансляцию, Никит! такие события еще больше объединяют комьюнити.  и простите нас, парни, за шутки и непомерное члековредительство! мы вас любим и ценим очень)", "reactions": 39}, {"id": 80977, "author": "Никита Черемисин", "date": "2025-11-14", "text": "Для тех кому лень смотреть трансляцию, развязка в 30 сек\n\n«Победитель долбит по жопе»", "reactions": 37}], "is_fallback": false}, {"key": "logistics_cities", "label_ru": "Логистика, города, дорога", "emoji": "🚗", "color": "#0ea5e9", "count": 2668, "share": 0.0243, "count_multi": 3928, "avg_reactions": 1.257, "reply_rate": 0.7406, "avg_len": 57.7, "top_authors": [["Никита Черемисин", 342], ["Sasha", 203], ["Di", 196], ["Oleg Kharatov", 165], ["Alexandr Shleyko", 155]], "top_terms": [["нови", 577], ["панчево", 323], ["саде", 250], ["сада", 85], ["машина", 72], ["ехать", 71], ["машине", 70], ["локация", 68], ["привет", 64], ["такси", 62], ["надо", 62], ["турнир", 60]], "examples": [{"id": 142950, "author": "Никита Черемисин", "date": "2026-08-26", "text": "Друзья, я часто информационно поддерживаю ребят из нашего коммьюнити, кто открывает свой бизнес.\nСегодня хочу рассказать про Диму Лаврова @lavrov_dmitriy , который открыл свой бар NO NAME в Нови-Саде🔥", "reactions": 58}, {"id": 113041, "author": "Никита Черемисин", "date": "2026-03-31", "text": "Определен состав на выставочный парный матч 18 апреля\n\n🐺 Янко Типсаревич\n🐺 Сергей Дорожкин\n\n🐘 Деян Катич\n🐘 Филипп Орловский\n\nМатч пройдет в формате одного сета, сразу по завершению турнира One Point S", "reactions": 56}, {"id": 129893, "author": "Oleg Kharatov", "date": "2026-06-13", "text": "Смотрите что происходит в Панчево на ITF", "reactions": 36}], "is_fallback": false}, {"key": "money_payments", "label_ru": "Деньги и оплата", "emoji": "💰", "color": "#22c55e", "count": 1674, "share": 0.0153, "count_multi": 2731, "avg_reactions": 1.128, "reply_rate": 0.7354, "avg_len": 64.3, "top_authors": [["Alexandr Shleyko", 140], ["Semyon Rostomyan", 107], ["Di", 106], ["Никита Черемисин", 103], ["Sasha", 77]], "top_terms": [["динар", 117], ["евро", 96], ["цена", 75], ["цены", 68], ["надо", 45], ["дешевле", 43], ["корт", 37], ["взнос", 35], ["дорого", 34], ["готов", 32], ["цену", 30], ["играть", 29]], "examples": [{"id": 56326, "author": "Никита Черемисин", "date": "2025-06-20", "text": "Подарки на женский парный турнир подготовил Игорь @izhivotov , который открыл первый в Сербии вейк-клуб с вейксерфингом и катерным вейкбордингом Take the Wake \n\nПобедительницы (1, 2 и 3 место) женског", "reactions": 32}, {"id": 120619, "author": "hena", "date": "2026-04-24", "text": "я буквально так и сделал, лакосты за 15к красненькие оказались лучше асиксов за 20\nно может быть когда ты Гена, то тебе всё что с крокодилом лучше подходит", "reactions": 25}, {"id": 128640, "author": "Vasilii Baranov", "date": "2026-06-06", "text": "Кто-то хочет завтра часик поиграть на Классике в 13 бесплатно?\n\nДля Саши Шлейко акция - 1000 динар", "reactions": 22}], "is_fallback": false}, {"key": "weather_cancel", "label_ru": "Погода, отмены, переносы", "emoji": "🌧️", "color": "#64748b", "count": 1335, "share": 0.0122, "count_multi": 1941, "avg_reactions": 1.211, "reply_rate": 0.7416, "avg_len": 58.0, "top_authors": [["Никита Черемисин", 138], ["Alexandr Shleyko", 75], ["Semyon Rostomyan", 74], ["Di", 60], ["Artem Arkhipov", 47]], "top_terms": [["дождь", 65], ["погода", 55], ["холодно", 45], ["надо", 43], ["дождя", 38], ["получится", 38], ["играть", 38], ["смогу", 35], ["погоди", 30], ["отменить", 29], ["привет", 27], ["отмена", 27]], "examples": [{"id": 137777, "author": "Eugenia Eremina", "date": "2026-07-24", "text": "Если для тебя это причина отказа или переноса - твоя задача выяснить этот вопрос заранее с соперником \n\nКак по мне, на игру может прийти кто угодно, хоть папа римский, это никак не должно влиять на тв", "reactions": 31}, {"id": 142363, "author": "Mikhail Korostikov", "date": "2026-08-19", "text": "Грусть в связи с отменой марафона заставила меня испечь печенюхи", "reactions": 28}, {"id": 51496, "author": "Никита Черемисин", "date": "2025-05-15", "text": "Сегодня состоялся «Парный Король», новый формат игр в коммьюнити 🔥\n\nНесмотря на сильный ветер вначале и дождь во время игр это не помешало нам закончить и выявить победителей🏆\n\nФормат:\n- играли 5 раун", "reactions": 27}], "is_fallback": false}, {"key": "injuries_health", "label_ru": "Травмы и здоровье", "emoji": "🩹", "color": "#dc2626", "count": 918, "share": 0.0084, "count_multi": 1284, "avg_reactions": 1.216, "reply_rate": 0.7451, "avg_len": 75.8, "top_authors": [["Semyon Rostomyan", 64], ["Никита Черемисин", 49], ["Alexandr Shleyko", 49], ["Di", 39], ["Sasha", 38]], "top_terms": [["боль", 42], ["болит", 36], ["надо", 35], ["травмы", 33], ["играть", 31], ["локоть", 27], ["судороги", 26], ["травма", 25], ["привет", 20], ["теннис", 16], ["травм", 15], ["массаж", 15]], "examples": [{"id": 142416, "author": "Misha Terpugov", "date": "2026-08-21", "text": "Друзья, защемило спину, если вдруг кто-то хочет вместо меня зайти на выездной на серебряно езеро напишите Никите.", "reactions": 32}, {"id": 20188, "author": "Никита Черемисин", "date": "2024-05-26", "text": "Друзья, спасибо за сегодняшний турнир 1600-2000🔥️️️️️️\n\nОчень плотные, ровные матчи, судороги в конце, но мы живые и счастливые ❤\nПриятно видеть, как новые ребята подрастают и уже наступают на пятки и", "reactions": 26}, {"id": 88599, "author": "Eugenia Eremina", "date": "2025-12-20", "text": "Ребята, я заболела сраным гриппом, а завтра у меня турнир парный до 1200 😭\nОчень хотела сыграть, но после того, как ночью чуть не откинулась от температуры и кашля, вынуждена искать себе замену 💔\n\n❓Чт", "reactions": 24}], "is_fallback": false}, {"key": "partner_search", "label_ru": "Поиск партнёра и сбор на игру", "emoji": "🤝", "color": "#3b82f6", "count": 605, "share": 0.0055, "count_multi": 822, "avg_reactions": 0.785, "reply_rate": 0.6628, "avg_len": 63.5, "top_authors": [["Никита Черемисин", 75], ["Alexandr Shleyko", 29], ["Di", 28], ["Alex", 21], ["Semyon Rostomyan", 19]], "top_terms": [["сыграем", 97], ["спарринг", 71], ["поиграть", 67], ["желающие", 62], ["сыграть", 60], ["привет", 48], ["играть", 47], ["партнера", 42], ["уровень", 36], ["пару", 36], ["готов", 25], ["теннис", 22]], "examples": [{"id": 112784, "author": "Eugenia Eremina", "date": "2026-03-30", "text": "Один из минусов достал, другой полотенцем обдувает, Гена, ёп твою мать, давай с тобой сыграем пару, я тебе покажу реальную жизнь, где ты будешь бегать мне за пивом, а я абьюзивно буду комментировать к", "reactions": 16}, {"id": 5427, "author": "Никита Черемисин", "date": "2023-10-22", "text": "Ребят, спасибо за сегодняшний спарринг день, было просто кайфово ;)\n\nЗатестили новый формат : одиночка и пара, считаю было успешно, будем продолжать;))", "reactions": 15}, {"id": 46426, "author": "Кристина", "date": "2025-03-29", "text": "Всем привет! \nСегодня был спарринг день. Ребята шикарно провели время, иногда все-таки так классно поиграть без страха «занять последнее место в турнире» или еще что. \n*Антон Володин просил отдельно п", "reactions": 12}], "is_fallback": false}], "topic_by_quarter": {"quarters": ["2023-Q1", "2023-Q2", "2023-Q3", "2023-Q4", "2024-Q1", "2024-Q2", "2024-Q3", "2024-Q4", "2025-Q1", "2025-Q2", "2025-Q3", "2025-Q4", "2026-Q1", "2026-Q2", "2026-Q3"], "series": {"partner_search": [1, 4, 31, 38, 39, 43, 14, 24, 44, 62, 60, 40, 79, 99, 27], "courts_venues": [15, 38, 61, 247, 313, 410, 241, 317, 463, 503, 570, 852, 751, 922, 512], "tournaments": [26, 93, 415, 827, 617, 747, 781, 938, 818, 1229, 1405, 1365, 2181, 1427, 1171], "match_talk": [3, 4, 165, 390, 350, 277, 257, 372, 380, 389, 597, 993, 1292, 1107, 719], "rating_bot": [1, 9, 94, 241, 172, 151, 110, 292, 341, 359, 634, 970, 1274, 687, 644], "rules_disputes": [0, 0, 34, 92, 76, 44, 55, 136, 124, 133, 272, 345, 621, 447, 352], "gear": [1, 11, 62, 215, 222, 232, 218, 331, 424, 356, 698, 694, 1167, 833, 526], "coaching_technique": [3, 6, 56, 173, 109, 164, 158, 193, 220, 190, 360, 593, 902, 583, 378], "pro_tennis": [0, 0, 53, 89, 82, 53, 122, 90, 221, 251, 277, 268, 478, 486, 223], "injuries_health": [0, 0, 5, 38, 31, 26, 34, 45, 71, 93, 108, 118, 168, 83, 98], "weather_cancel": [8, 11, 20, 56, 45, 57, 54, 52, 46, 108, 117, 152, 226, 245, 138], "social_offtopic": [0, 6, 119, 224, 197, 227, 201, 263, 312, 475, 543, 755, 1049, 978, 654], "logistics_cities": [5, 37, 48, 95, 104, 65, 74, 122, 176, 161, 242, 327, 521, 491, 200], "money_payments": [0, 2, 21, 35, 57, 53, 31, 103, 90, 109, 156, 280, 286, 269, 182], "community_admin": [5, 13, 43, 140, 136, 128, 157, 197, 226, 263, 455, 635, 833, 530, 472]}}, "topic_by_month": {"months": ["2023-02", "2023-03", "2023-04", "2023-05", "2023-06", "2023-07", "2023-08", "2023-09", "2023-10", "2023-11", "2023-12", "2024-01", "2024-02", "2024-03", "2024-04", "2024-05", "2024-06", "2024-07", "2024-08", "2024-09", "2024-10", "2024-11", "2024-12", "2025-01", "2025-02", "2025-03", "2025-04", "2025-05", "2025-06", "2025-07", "2025-08", "2025-09", "2025-10", "2025-11", "2025-12", "2026-01", "2026-02", "2026-03", "2026-04", "2026-05", "2026-06", "2026-07", "2026-08", "2026-09"], "series": {"partner_search": [1, 0, 1, 3, 0, 5, 8, 18, 22, 10, 6, 15, 14, 10, 20, 16, 7, 4, 3, 7, 4, 1, 19, 10, 13, 21, 23, 27, 12, 30, 17, 13, 13, 21, 6, 31, 14, 34, 33, 29, 37, 15, 8, 4], "courts_venues": [9, 6, 12, 13, 13, 9, 16, 36, 76, 89, 82, 91, 115, 107, 183, 111, 116, 51, 93, 97, 101, 108, 108, 138, 143, 182, 214, 169, 120, 226, 157, 187, 288, 350, 214, 175, 207, 369, 428, 261, 233, 310, 130, 72], "tournaments": [12, 14, 31, 24, 38, 38, 146, 231, 242, 333, 252, 186, 193, 238, 282, 240, 225, 260, 275, 246, 302, 273, 363, 296, 235, 287, 390, 294, 545, 633, 386, 386, 422, 476, 467, 704, 647, 830, 737, 354, 336, 613, 398, 160], "match_talk": [3, 0, 0, 2, 2, 9, 60, 96, 115, 164, 111, 96, 142, 112, 95, 88, 94, 95, 75, 87, 80, 114, 178, 132, 93, 155, 140, 111, 138, 232, 191, 174, 262, 474, 257, 525, 317, 450, 453, 275, 379, 398, 221, 100], "rating_bot": [0, 1, 2, 0, 7, 2, 32, 60, 57, 134, 50, 44, 80, 48, 33, 56, 62, 22, 27, 61, 45, 88, 159, 126, 80, 135, 125, 69, 165, 308, 164, 162, 229, 454, 287, 439, 326, 509, 289, 179, 219, 301, 234, 109], "rules_disputes": [0, 0, 0, 0, 0, 4, 6, 24, 46, 21, 25, 31, 20, 25, 13, 18, 13, 11, 18, 26, 42, 34, 60, 71, 31, 22, 34, 42, 57, 113, 66, 93, 99, 161, 85, 133, 278, 210, 194, 92, 161, 197, 137, 18], "gear": [1, 0, 0, 7, 4, 1, 32, 29, 81, 61, 73, 43, 75, 104, 100, 56, 76, 62, 52, 104, 111, 54, 166, 106, 175, 143, 125, 100, 131, 221, 210, 267, 202, 242, 250, 371, 308, 488, 400, 224, 209, 278, 196, 52], "coaching_technique": [3, 0, 1, 0, 5, 10, 28, 18, 41, 101, 31, 25, 25, 59, 88, 35, 41, 42, 44, 72, 64, 62, 67, 82, 83, 55, 51, 73, 66, 139, 138, 83, 151, 252, 190, 339, 269, 294, 296, 125, 162, 233, 122, 23], "pro_tennis": [0, 0, 0, 0, 0, 4, 21, 28, 17, 47, 25, 43, 7, 32, 19, 22, 12, 47, 32, 43, 33, 37, 20, 106, 56, 59, 47, 95, 109, 108, 104, 65, 127, 103, 38, 268, 76, 134, 187, 156, 143, 141, 29, 53], "injuries_health": [0, 0, 0, 0, 0, 0, 1, 4, 9, 14, 15, 12, 16, 3, 8, 10, 8, 2, 17, 15, 8, 16, 21, 31, 17, 23, 24, 49, 20, 37, 35, 36, 47, 43, 28, 85, 32, 51, 28, 24, 31, 63, 23, 12], "weather_cancel": [1, 7, 4, 3, 4, 2, 8, 10, 17, 19, 20, 15, 19, 11, 18, 20, 19, 12, 8, 34, 11, 17, 24, 17, 11, 18, 32, 35, 41, 60, 21, 36, 56, 70, 26, 50, 70, 106, 106, 83, 56, 70, 45, 23], "social_offtopic": [0, 0, 1, 1, 4, 5, 49, 65, 72, 95, 57, 72, 61, 64, 59, 87, 81, 51, 59, 91, 57, 83, 123, 127, 85, 100, 160, 140, 175, 227, 164, 152, 188, 310, 257, 316, 324, 409, 463, 292, 223, 317, 245, 92], "logistics_cities": [4, 1, 16, 6, 15, 12, 19, 17, 35, 25, 35, 29, 22, 53, 24, 27, 14, 16, 28, 30, 26, 41, 55, 59, 47, 70, 27, 49, 85, 87, 89, 66, 85, 116, 126, 135, 133, 253, 157, 144, 190, 117, 51, 32], "money_payments": [0, 0, 0, 0, 2, 4, 9, 8, 14, 12, 9, 22, 11, 24, 16, 26, 11, 6, 13, 12, 42, 29, 32, 47, 26, 17, 47, 37, 25, 50, 50, 56, 75, 125, 80, 84, 67, 135, 110, 59, 100, 85, 73, 24], "community_admin": [1, 4, 2, 9, 2, 5, 22, 16, 21, 60, 59, 42, 47, 47, 34, 46, 48, 44, 51, 62, 42, 68, 87, 69, 72, 85, 89, 90, 84, 214, 117, 124, 139, 215, 281, 279, 241, 313, 252, 121, 157, 261, 148, 63]}}, "topic_by_hour": {"partner_search": [5, 1, 1, 0, 0, 0, 1, 2, 20, 27, 36, 52, 56, 54, 46, 42, 59, 31, 43, 31, 14, 34, 36, 14], "courts_venues": [56, 15, 5, 0, 0, 2, 4, 38, 112, 262, 452, 608, 607, 561, 437, 484, 538, 367, 318, 294, 328, 341, 246, 140], "tournaments": [134, 28, 10, 0, 2, 1, 8, 89, 325, 629, 995, 1044, 1178, 1181, 1250, 821, 800, 792, 708, 809, 821, 996, 951, 468], "match_talk": [98, 31, 8, 0, 3, 1, 8, 40, 132, 218, 383, 486, 609, 554, 550, 544, 511, 480, 448, 429, 437, 520, 562, 243], "rating_bot": [56, 16, 0, 2, 3, 0, 3, 11, 52, 158, 324, 427, 590, 636, 505, 512, 396, 317, 379, 327, 311, 340, 387, 227], "rules_disputes": [34, 13, 3, 0, 0, 0, 2, 6, 34, 73, 162, 220, 335, 242, 193, 208, 205, 150, 157, 181, 155, 114, 157, 87], "gear": [51, 13, 1, 3, 1, 0, 6, 19, 79, 210, 407, 700, 504, 527, 525, 456, 425, 434, 328, 316, 245, 254, 260, 226], "coaching_technique": [67, 13, 9, 2, 0, 1, 4, 14, 45, 102, 207, 352, 356, 362, 365, 325, 297, 285, 253, 306, 154, 225, 245, 99], "pro_tennis": [48, 7, 3, 1, 1, 0, 7, 17, 40, 91, 126, 138, 188, 200, 207, 260, 217, 193, 198, 211, 124, 194, 138, 84], "injuries_health": [8, 3, 1, 1, 0, 0, 0, 3, 23, 42, 68, 75, 82, 86, 87, 60, 70, 76, 40, 49, 43, 25, 56, 20], "weather_cancel": [9, 1, 0, 0, 0, 0, 4, 9, 31, 58, 97, 110, 108, 129, 88, 92, 119, 72, 72, 62, 53, 80, 82, 59], "social_offtopic": [64, 12, 3, 1, 2, 0, 4, 46, 104, 200, 376, 555, 590, 562, 474, 401, 419, 351, 329, 291, 279, 327, 423, 190], "logistics_cities": [38, 5, 1, 0, 0, 0, 3, 16, 58, 122, 206, 202, 242, 234, 184, 159, 247, 152, 158, 125, 162, 137, 132, 85], "money_payments": [13, 8, 0, 0, 0, 0, 1, 5, 20, 50, 119, 163, 195, 144, 114, 146, 108, 119, 133, 92, 59, 57, 69, 59], "community_admin": [51, 12, 0, 1, 2, 4, 5, 17, 51, 133, 255, 375, 438, 366, 387, 265, 287, 270, 235, 211, 206, 230, 262, 170]}, "topic_by_weekday": {"partner_search": [86, 75, 119, 97, 84, 79, 65], "courts_venues": [834, 982, 1101, 1066, 1143, 626, 463], "tournaments": [2238, 1746, 2089, 2219, 2287, 1828, 1633], "match_talk": [942, 974, 1144, 1292, 1254, 857, 832], "rating_bot": [1011, 827, 1004, 967, 1035, 543, 592], "rules_disputes": [378, 295, 483, 488, 534, 284, 269], "gear": [859, 884, 998, 966, 1118, 704, 461], "coaching_technique": [569, 645, 710, 692, 702, 341, 429], "pro_tennis": [410, 380, 329, 437, 592, 234, 311], "injuries_health": [165, 135, 153, 175, 131, 74, 85], "weather_cancel": [187, 148, 182, 278, 213, 174, 153], "social_offtopic": [1021, 738, 988, 869, 1168, 587, 632], "logistics_cities": [434, 347, 476, 399, 470, 303, 239], "money_payments": [266, 246, 245, 293, 293, 190, 141], "community_admin": [673, 523, 647, 703, 872, 383, 432]}, "topic_cooccurrence": [["match_talk", "tournaments", 1853], ["social_offtopic", "tournaments", 1525], ["rating_bot", "tournaments", 1343], ["match_talk", "social_offtopic", 1072], ["community_admin", "tournaments", 972], ["match_talk", "rating_bot", 932], ["logistics_cities", "tournaments", 851], ["courts_venues", "tournaments", 835], ["courts_venues", "gear", 753], ["rating_bot", "social_offtopic", 645], ["community_admin", "rating_bot", 643], ["courts_venues", "social_offtopic", 600], ["coaching_technique", "tournaments", 589], ["courts_venues", "match_talk", 559], ["coaching_technique", "match_talk", 548], ["community_admin", "social_offtopic", 534], ["courts_venues", "logistics_cities", 509], ["gear", "tournaments", 497], ["coaching_technique", "gear", 483], ["courts_venues", "money_payments", 482]], "topic_inherited_share": 0.2091, "monthly": {"months": ["2023-02", "2023-03", "2023-04", "2023-05", "2023-06", "2023-07", "2023-08", "2023-09", "2023-10", "2023-11", "2023-12", "2024-01", "2024-02", "2024-03", "2024-04", "2024-05", "2024-06", "2024-07", "2024-08", "2024-09", "2024-10", "2024-11", "2024-12", "2025-01", "2025-02", "2025-03", "2025-04", "2025-05", "2025-06", "2025-07", "2025-08", "2025-09", "2025-10", "2025-11", "2025-12", "2026-01", "2026-02", "2026-03", "2026-04", "2026-05", "2026-06", "2026-07", "2026-08", "2026-09"], "human": [82, 69, 179, 137, 180, 223, 728, 1047, 1379, 1868, 1439, 1318, 1352, 1554, 1674, 1390, 1371, 1203, 1307, 1618, 1577, 1799, 2561, 2392, 1913, 2198, 2447, 2215, 3087, 4190, 3122, 2992, 3912, 5510, 4566, 6296, 5232, 7508, 7133, 4087, 4384, 5567, 3514, 1435], "bot": [0, 0, 72, 56, 100, 129, 197, 429, 487, 489, 408, 401, 442, 468, 515, 460, 834, 728, 811, 644, 650, 675, 625, 602, 756, 973, 940, 1128, 1441, 1171, 1511, 1445, 1211, 1368, 1141, 1133, 1159, 1251, 1103, 1195, 966, 920, 1368, 851], "unique_authors": [10, 12, 23, 22, 29, 36, 55, 85, 98, 102, 101, 108, 108, 110, 118, 125, 125, 138, 149, 148, 147, 134, 127, 119, 131, 140, 145, 162, 165, 172, 174, 157, 178, 168, 164, 153, 153, 147, 173, 175, 171, 160, 142, 116], "new_authors": [10, 7, 14, 15, 11, 15, 27, 38, 31, 20, 16, 19, 17, 12, 17, 18, 20, 15, 26, 19, 19, 13, 9, 14, 14, 16, 18, 17, 16, 18, 16, 16, 18, 10, 13, 11, 9, 12, 17, 12, 14, 7, 6, 2]}, "weekday_hour": [[187, 55, 22, 4, 0, 2, 14, 86, 229, 588, 972, 1399, 1678, 1413, 1194, 1112, 1192, 1025, 1132, 947, 763, 899, 817, 407], [103, 30, 13, 1, 10, 2, 18, 61, 222, 496, 905, 835, 1177, 1513, 1335, 1061, 1072, 975, 857, 818, 723, 783, 813, 452], [86, 16, 1, 3, 1, 2, 13, 64, 189, 445, 994, 1613, 1682, 1625, 1441, 1246, 1352, 1129, 847, 933, 802, 1007, 987, 595], [250, 40, 3, 8, 3, 1, 17, 61, 294, 692, 1299, 1573, 1177, 1540, 1507, 1558, 1389, 1162, 1091, 772, 752, 721, 1014, 587], [197, 32, 4, 1, 1, 4, 24, 106, 357, 836, 1183, 1594, 2159, 1681, 1770, 1655, 1326, 990, 860, 957, 943, 1055, 861, 529], [208, 92, 26, 1, 5, 7, 16, 86, 196, 505, 747, 912, 764, 722, 767, 745, 806, 701, 947, 1092, 1071, 1087, 1178, 556], [243, 60, 13, 6, 16, 16, 21, 87, 221, 310, 566, 695, 916, 633, 596, 514, 624, 711, 749, 1216, 1257, 1147, 1037, 743]], "hourly": [1274, 325, 82, 24, 36, 34, 123, 551, 1708, 3872, 6666, 8621, 9553, 9127, 8610, 7891, 7761, 6693, 6483, 6735, 6311, 6699, 6707, 3869], "weekday": [16137, 14275, 17073, 17511, 19125, 13237, 12397], "busiest_days": [{"date": "2026-04-01", "count": 835, "top_topic": "other", "sample": "Как анонсировала вчера Настя, мы приготовили для вас кое-что. \nТак совпало, что сегодня 1 апреля, но это далеко от шутки.\n\nТеперь в приложении можно заказать ра"}, {"date": "2026-01-30", "count": 748, "top_topic": "other", "sample": "Крутой был матч, надеюсь, другие матчи сегодня, а именно:\nДжокович - Синнер\nШлейко - Журавлев\n\nНас так же не разочаруют"}, {"date": "2026-04-20", "count": 651, "top_topic": "other", "sample": "Ребята, ещё раз спасибо огромное всем и каждому за вовлечение, инициативность и зрительскую самоотдачу и экспрессию.\n\nСпасибо игрокам за сверхъестественный уров"}, {"date": "2026-03-11", "count": 597, "top_topic": "other", "sample": "Друзья, во первых, спасибо вам большое, за то что были на трансляции, нереальный процент удержания. Оказывается можем!\nВо вторых спасибо за вашу обратную связь,"}, {"date": "2026-03-23", "count": 482, "top_topic": "other", "sample": "я вот шутку придумал, когда играешь против Паши Борисова, можно ли считать, что ты \"на приеме у врача\""}, {"date": "2025-07-14", "count": 464, "top_topic": "other", "sample": "Чуть затихло, самое время подвести итоги 6 сезона bagel лиги🔥\nИ начислить финалистам bagel coin\n\nКремниевая\n🏆 Настя Щербинина @Shcherbinina_Anastasija – максима"}, {"date": "2026-02-09", "count": 460, "top_topic": "other", "sample": "для парного лука на турнирах вот, Инь&Аут"}, {"date": "2025-09-05", "count": 456, "top_topic": "other", "sample": "ты вел 5-0, помнишь? а щас уже 5-5"}, {"date": "2026-04-03", "count": 440, "top_topic": "tournaments", "sample": "Есть подозрение, чтобы определить победителя - кто то должен проиграть"}, {"date": "2026-07-17", "count": 427, "top_topic": "tournaments", "sample": "Если я усну и проснусь через сто лет и меня спросят, что сейчас происходит в Bagel Tennis Community, я отвечу - спорят из-за рейтинга и ограничений на вход в ту"}], "yearly": {"2023": 9698, "2024": 25977, "2025": 52231, "2026": 55102}, "top_authors": [{"name": "Никита Черемисин", "msgs": 13033, "share": 0.1187, "reactions_received": 30985, "avg_reactions": 2.377, "top_topic": "tournaments", "first_msg": "2023-02", "last_msg": "2026-09", "active_months": 44, "median_len": 33}, {"name": "Alexandr Shleyko", "msgs": 6615, "share": 0.0603, "reactions_received": 7533, "avg_reactions": 1.139, "top_topic": "other", "first_msg": "2024-12", "last_msg": "2026-09", "active_months": 22, "median_len": 39}, {"name": "Semyon Rostomyan", "msgs": 6133, "share": 0.0559, "reactions_received": 9039, "avg_reactions": 1.474, "top_topic": "other", "first_msg": "2023-04", "last_msg": "2026-09", "active_months": 42, "median_len": 33}, {"name": "Di", "msgs": 6047, "share": 0.0551, "reactions_received": 9969, "avg_reactions": 1.649, "top_topic": "other", "first_msg": "2023-05", "last_msg": "2026-09", "active_months": 40, "median_len": 32}, {"name": "Sasha", "msgs": 4916, "share": 0.0448, "reactions_received": 5961, "avg_reactions": 1.213, "top_topic": "other", "first_msg": "2023-10", "last_msg": "2026-08", "active_months": 30, "median_len": 29}, {"name": "Alex", "msgs": 4176, "share": 0.038, "reactions_received": 4448, "avg_reactions": 1.065, "top_topic": "other", "first_msg": "2024-05", "last_msg": "2026-09", "active_months": 29, "median_len": 34}, {"name": "Artem Arkhipov", "msgs": 3513, "share": 0.032, "reactions_received": 3562, "avg_reactions": 1.014, "top_topic": "other", "first_msg": "2024-05", "last_msg": "2026-09", "active_months": 29, "median_len": 38}, {"name": "Mikhail Sokolov", "msgs": 3027, "share": 0.0276, "reactions_received": 2999, "avg_reactions": 0.991, "top_topic": "other", "first_msg": "2023-02", "last_msg": "2026-09", "active_months": 44, "median_len": 32}, {"name": "Ilia Ivanov", "msgs": 2524, "share": 0.023, "reactions_received": 1986, "avg_reactions": 0.787, "top_topic": "other", "first_msg": "2023-07", "last_msg": "2026-09", "active_months": 38, "median_len": 50}, {"name": "Sergey Bortsov", "msgs": 2487, "share": 0.0227, "reactions_received": 4005, "avg_reactions": 1.61, "top_topic": "other", "first_msg": "2023-06", "last_msg": "2026-09", "active_months": 40, "median_len": 26}, {"name": "Oleg Kharatov", "msgs": 2010, "share": 0.0183, "reactions_received": 3238, "avg_reactions": 1.611, "top_topic": "other", "first_msg": "2024-09", "last_msg": "2026-09", "active_months": 25, "median_len": 34}, {"name": "Николай Чагин", "msgs": 1714, "share": 0.0156, "reactions_received": 2017, "avg_reactions": 1.177, "top_topic": "other", "first_msg": "2024-08", "last_msg": "2026-02", "active_months": 19, "median_len": 39}, {"name": "Konstantin", "msgs": 1593, "share": 0.0145, "reactions_received": 2140, "avg_reactions": 1.343, "top_topic": "tournaments", "first_msg": "2023-07", "last_msg": "2026-09", "active_months": 29, "median_len": 34}, {"name": "TR 🇷🇸", "msgs": 1590, "share": 0.0145, "reactions_received": 1729, "avg_reactions": 1.087, "top_topic": "other", "first_msg": "2023-10", "last_msg": "2026-07", "active_months": 34, "median_len": 21}, {"name": "d", "msgs": 1535, "share": 0.014, "reactions_received": 4119, "avg_reactions": 2.683, "top_topic": "other", "first_msg": "2023-12", "last_msg": "2026-09", "active_months": 34, "median_len": 44}, {"name": "Nick Malykh", "msgs": 1519, "share": 0.0138, "reactions_received": 2014, "avg_reactions": 1.326, "top_topic": "other", "first_msg": "2023-10", "last_msg": "2026-07", "active_months": 34, "median_len": 41}, {"name": "Saimon Kat", "msgs": 1456, "share": 0.0133, "reactions_received": 4260, "avg_reactions": 2.926, "top_topic": "media_only", "first_msg": "2024-06", "last_msg": "2026-09", "active_months": 28, "median_len": 28}, {"name": "Eugene", "msgs": 1264, "share": 0.0115, "reactions_received": 340, "avg_reactions": 0.269, "top_topic": "other", "first_msg": "2025-05", "last_msg": "2026-09", "active_months": 17, "median_len": 46}, {"name": "Oleg Kunitsyn", "msgs": 1204, "share": 0.011, "reactions_received": 628, "avg_reactions": 0.522, "top_topic": "other", "first_msg": "2025-10", "last_msg": "2026-07", "active_months": 10, "median_len": 56}, {"name": "hena", "msgs": 1197, "share": 0.0109, "reactions_received": 1415, "avg_reactions": 1.182, "top_topic": "other", "first_msg": "2025-04", "last_msg": "2026-09", "active_months": 17, "median_len": 53}], "author_concentration": {"top10_share": 0.8577, "top50_share": 0.9906, "gini": 0.8953}, "author_buckets": {"1-9": 350, "10-99": 219, "100-999": 93, "1000+": 22}, "most_reacted_authors_relative": [["Кирилл Лебедев", 6.582, 177], ["Natalia Safronenko", 3.511, 190], ["Eugenia Eremina", 3.465, 602], ["Saimon Kat", 2.926, 1456], ["Sofia", 2.789, 593], ["Сергей Мальченко", 2.762, 618], ["d", 2.683, 1535], ["Lena Korchemagina", 2.555, 382], ["Oleg Varenye", 2.548, 104], ["Roman", 2.425, 445]], "retention": {"cohorts": [{"cohort": "2023-Q1", "size": 17, "still_active_last_90d": 4}, {"cohort": "2023-Q2", "size": 40, "still_active_last_90d": 12}, {"cohort": "2023-Q3", "size": 80, "still_active_last_90d": 26}, {"cohort": "2023-Q4", "size": 67, "still_active_last_90d": 22}, {"cohort": "2024-Q1", "size": 48, "still_active_last_90d": 8}, {"cohort": "2024-Q2", "size": 55, "still_active_last_90d": 13}, {"cohort": "2024-Q3", "size": 60, "still_active_last_90d": 15}, {"cohort": "2024-Q4", "size": 41, "still_active_last_90d": 13}, {"cohort": "2025-Q1", "size": 44, "still_active_last_90d": 11}, {"cohort": "2025-Q2", "size": 51, "still_active_last_90d": 19}, {"cohort": "2025-Q3", "size": 50, "still_active_last_90d": 20}, {"cohort": "2025-Q4", "size": 41, "still_active_last_90d": 12}, {"cohort": "2026-Q1", "size": 32, "still_active_last_90d": 11}, {"cohort": "2026-Q2", "size": 43, "still_active_last_90d": 15}, {"cohort": "2026-Q3", "size": 15, "still_active_last_90d": 15}]}, "reactions_top_emoji": [["🔥", 84486], ["😁", 68555], ["❤", 34680], ["👍", 22275], ["💯", 12237], ["😱", 11407], ["😢", 7047], ["💔", 6665], ["🤣", 6006], ["🤝", 2390], ["😭", 2248], ["🏆", 2063], ["👏", 1954], ["😨", 1775], ["❤‍🔥", 1504]], "reactions_by_year": {"2023": 10774, "2024": 57254, "2025": 114915, "2026": 99867}, "most_reacted_messages": [{"id": 120076, "author": "Valentin Popov", "date": "2026-04-20", "text": "Ребята, ещё раз спасибо огромное всем и каждому за вовлечение, инициативность и зрительскую самоотдачу и экспрессию.\n\nСпасибо игрокам за сверхъестественный уровень тенниса, драму и такие сюжетные повороты. Эмоции зашкаливают до сих пор. Приятная тряска по всему телу)))\n\nСпасибо Никите, что позвал, о", "reactions": 125, "topic": "community_admin", "media_type": null}, {"id": 77648, "author": "Никита Черемисин", "date": "2025-10-30", "text": "Братва, у Кирилла @Sminerino , создателя мини аппа @bagel_tennis_bot сегодня День Рождение:)\nДавайте поздравим этого талантливого парня, накидаем смайликов/реакций", "reactions": 90, "topic": "rating_bot", "media_type": null}, {"id": 51307, "author": "Evgeniy Romanov", "date": "2025-05-14", "text": "@nikitacheful Никита, с днём рождения! Ты отличный организатор, спасибо тебе за твою работу! Желаю больших успехов в спорте и бизнесе, крепкого здоровья и надёжных людей рядом! 🚀💛", "reactions": 87, "topic": "social_offtopic", "media_type": null}, {"id": 16995, "author": "Никита Черемисин", "date": "2024-04-11", "text": "Друзья, долго готовили к запуску новый проект и теперь можно о нём говорить🔥🔥🔥\n\nУ нашего комьюнити на летний сезон появились корты!\nBagel Court в Белграде\n\nЭто про нас:\n– можешь забронировать онлайн\n– корт подготовлен к новому сезону, ровный, с хорошими забегами\n– ходят автобусы 65, 66, 74, 27N (нем", "reactions": 86, "topic": "courts_venues", "media_type": "photo"}, {"id": 119157, "author": "Eugenia Eremina", "date": "2026-04-18", "text": "Посмотрите, СКОЛЬКО НАС!\nНикита @nikitacheful спасибо тебе огромное, сегодня было невероятно круто (впрочем, как и всегда)", "reactions": 80, "topic": "other", "media_type": "photo"}, {"id": 130630, "author": "Mikhail Saskovets", "date": "2026-06-17", "text": "Ребята, привет!\n\nНезаметно пролетел месяц, и вот я уже снова сижу в самолете, а значит время для моих любимых сентиментов настало) Я хочу сказать огромное спасибо каждому, с кем мне удалось провести время за этот невероятно насыщенный период в Сербии! Спасибо партнерам, спасибо соперникам, спасибо в", "reactions": 73, "topic": "community_admin", "media_type": "photo"}, {"id": 132828, "author": "Sofia", "date": "2026-07-01", "text": "Любимый мой чат во всем телеграмме, сегодня мой последний день в Сербии после 3 лет невероятного теннисного, социального, мемного опыта со всеми вами! Я безумно благодарна и восхищаюсь творением нашего биг босса @nikitacheful, ты создал поистине уникальное комьюнити, историки русской эмиграции будут", "reactions": 72, "topic": "community_admin", "media_type": "photo"}, {"id": 48301, "author": "Никита Черемисин", "date": "2025-04-14", "text": "Смотрите, Аня уехала в Мск и уже там разрывает местные турниры❤️", "reactions": 70, "topic": "tournaments", "media_type": "photo"}, {"id": 53668, "author": "Никита Черемисин", "date": "2025-06-01", "text": "Вот это турнирный день сегодня ребята выдали 💪\n\nНа турнире до 400 много уникальных событий произошло \n\n- Впервые состоялся женский финал, девушки выбили всех парней по пути к трофею \n- Супер сбалансированный состав \n- Сразу 4 новых игрока зашли в турнир \n\n⚡️ Саша сыграл больше всех тай брейков, очен", "reactions": 70, "topic": "match_talk", "media_type": "photo"}, {"id": 19304, "author": "Igor Kolodkin", "date": "2024-05-14", "text": "@nikitacheful с днем рождения 🎉🎉🎉!\n\nЖелаю нескончаемого развития, успешных инициатив, удовольствия от процесса, ну и здоровья, конечно 💪💪💪\n\nСпасибо, что ты есть) 👏", "reactions": 68, "topic": "social_offtopic", "media_type": null}], "most_replied_messages": [{"id": 89508, "author": "Anastasija Shcherbinina", "date": "2025-12-25", "text": "Тому, кто угадает, что именно мы тут обсуждаем, подарю 15 коинов 😉\n\n*участникам и свидетелям разговора участвовать в розыгрыше и подсказывать правильный ответ нельзя.", "replies": 15, "topic": "rating_bot"}, {"id": 10367, "author": "Никита Черемисин", "date": "2023-12-29", "text": "У кого ещё какие челленджи в следующем году, на сколько хотите вырасти?)", "replies": 14, "topic": "other"}, {"id": 16995, "author": "Никита Черемисин", "date": "2024-04-11", "text": "Друзья, долго готовили к запуску новый проект и теперь можно о нём говорить🔥🔥🔥\n\nУ нашего комьюнити на летний сезон появились корты!\nBagel Court в Белграде\n\nЭто про нас:\n– можешь забронировать онлайн\n– корт подготовлен к новому сезону, ровный, с хорошими забегами\n– ходят автобусы 65, 66, 74, 27N (нем", "replies": 14, "topic": "courts_venues"}, {"id": 84141, "author": "TENNIS BOT", "date": "2025-11-28", "text": "hena s | Alexander Shleyko | Anastasija Shcherbinina | Николай Чагин | Oleg Kharatov | Artem Arkhipov | Alex Dubikovskii | Денис Сиволап | Артём Журавлев | Семён Ростомян | Никита Черемисин сыграли дружеский матч! 🤝", "replies": 14, "topic": "bot"}, {"id": 111246, "author": "Никита Черемисин", "date": "2026-03-25", "text": "Уверен, что лучше спросить, чем самому гадать 🙂\n\nБувально через 3-4 недели у нас стартует 10-й юбилейный сезон лиги\nХочется сделать его особенным\nИз фишек которые будут:\n– денежный призовой фонд для 1 и 2 места \n– фэмили парная лига\n– общий финал с едой \n\nЧто можно еще добавить ? \nЛюбые смелые предл", "replies": 14, "topic": "tournaments"}, {"id": 79896, "author": "bagel community – теннис Сербия", "date": "2025-11-11", "text": "Готовы списки на Итоговый турнир 2025🔥\n\nКак проходит итоговый:\n– играем 2 дня (СБ и ВС)\n– первый день групповая стадия\n– второй день плей-офф и доп турнир\n\nЭто сделано для того, чтобы участники показали лучший теннис, без судорог и других физических неприятностей.\n\nВ каждой категории по 12 игроков, ", "replies": 13, "topic": "bot"}, {"id": 141372, "author": "Никита Черемисин", "date": "2026-08-14", "text": "Братва, мега новости от теннис бота, хотите обсудить ?\n\nСаша Зайцев до конца месяца выкатит новую модель, которая пересчитает все матчи, вот что будет еще новое:\n\n– уйдут минусы (прощай эпоха)\n– если слабый проигрывает сильному, то отнимается мало или не отнимается \n– появится шанс преодолеть свои ц", "replies": 13, "topic": "match_talk"}, {"id": 105795, "author": "bagel community – теннис Сербия", "date": "2026-03-07", "text": "Воеводинское дерби🔥\n\nНови Сад едет в Панчево, но не в гости к Олегу, а «надрать пушистые задницы Панчевским Волкам»\n\nМатч: 11 марта в 19:00\nТрансляция на YouTube \n\nЛиния ставок открыта по ссылке, можешь заработать на покерный турнир\n\nВажно: на 3 гейма Семён играет ракеткой для пикл бола \n\nУ нас своя", "replies": 12, "topic": "bot"}, {"id": 133188, "author": "hena", "date": "2026-07-03", "text": "блин у меня горит жопа что день в день нигде больше не меняют струны\nи что б поменять надо приехать отдать потом приехать забрать\nвыходит 4 поездки на такси ради замены струн\nкак вы решаете эту проблему?)", "replies": 12, "topic": "gear"}, {"id": 32955, "author": "Никита Черемисин", "date": "2024-11-12", "text": "Друзья, когда смотрю проф тур, вижу какая у них крутая визаульная состовляющая.\nХочу в нашем коммьюнити сделать также😎\n\nПредлагаю провести студийную фотосессию для игроков нашего комьюнити, референсы как на фото.\nПроведём фотосессию до итоговых турниров!\n\nНа фотосет в первую очередь приглашаются игр", "replies": 11, "topic": "tournaments"}], "reply_depth": {"1": 30825, "2": 16467, "3": 8743, "4+": 11365}, "avg_reply_latency_minutes": {"median": 1.7, "p75": 6.7}, "polls": {"count": 525, "top_by_answers": [{"question": "Сколько у вас кубков?", "author": "Alexandr Shleyko", "date": "2025-11-22", "answers": ["0", "🏆", "🏆🏆", "🏆🏆🏆", "🏆🏆🏆🏆", "🏆🏆🏆🏆🏆", "🏆🏆🏆🏆🏆🏆", "🏆🏆🏆🏆🏆🏆🏆", "🏆🏆🏆🏆🏆🏆🏆🏆", "🏆🏆🏆🏆🏆🏆🏆🏆🏆", "🏆🏆🏆🏆🏆🏆🏆🏆🏆🏆", "больше 10 🏆"]}, {"question": "Лучшие корты зимнего сезона Белград (выберите не больше 3х) — ваш субъективный выбор", "author": "Alexandr Shleyko", "date": "2025-12-11", "answers": ["Типсаревич (ex Novak)", "Младость", "Партизан", "Црвена Звезда", "Ушче", "Омладинский", "Ада (хард)", "Олимп", "Бейзлайн", "Классик", "Арадинович (багель)", "Другой (напишите какой и почему в ответе, вас полайкают)"]}, {"question": "Кто фаворит пивного турика?", "author": "Alexandr Shleyko", "date": "2026-02-20", "answers": ["Сергей Борцов", "Артем Афанасьев", "Сергей Жуков", "Денис Сиволап", "Саша Тагер", "Женя Безгин", "Ник Малых", "Никита Киселев", "Константин Белов", "Артем Архипов", "Алекс Дубиковский", "Кто-то другой"]}, {"question": "Любимые теннисные мячи (бренды) 🎾", "author": "Александр Зайцев", "date": "2026-03-26", "answers": ["Babolat", "Yonex", "Tecnifibre", "Robin Soldering", "Slazenger", "Wilson", "Dunlop", "Prince", "Head", "Tennis Technology", "Нева", "Пётр I"]}, {"question": "Давайте горячий опрос! Что лично вас бесит во время матча? При ответе не обращайте внимания на объем или потенциальную возможность раздражения, указывайте если у вас был опыт горения на указанные действия на корте.", "author": "Alexandr Shleyko", "date": "2026-03-26", "answers": ["Крики \"Камон\" или \"Да\" от соперника на свои успешные действия или ваши ошибки", "Плевки/высмаркивание на корт", "Качалово/игра свечами/прочими ударами которые вы не считаете \"достойными\"", "Проверка аутов, в том числе вопросы \"большой\", \"покажи след\"?", "Не перекидывание мячей/перекидывание/поиск мячей когда не надо (в том числе между подачами)", "Громкие крики/мат со стороны соперника на его неудачах", "Попытки поболтать за жизнь/игру между розыгрышами", "Сидение/несанкционированные перерывы в моменты когда такое неразрешено", "Объявление счета на вашей подаче", "Паузы в решающие моменты игры (завязывание шнурков перед второй подаче на решающем и т.п.)", "Что-то ещё, что тут не указано (смелые могут предлагать в чате)", "Люблю бесить других, спасибо за идеи!"]}, {"question": "За кого топите?", "author": "Alexandr Shleyko", "date": "2026-07-09", "answers": ["Саймон Катаев", "Миша Мальков", "Олег Куницын", "Костя Члек", "Костя Белов", "Саша Шлейко", "Паша Валитов", "Сергей Жуков", "Новак Джокович", "Янник Синнер", "Артур Фери", "Саша Зверев"]}, {"question": "Твой выбор", "author": "Mikhail Sokolov", "date": "2026-07-11", "answers": ["Заечарско", "Елен", "Лав", "Никшичко", "Вальевско", "Безлимитное пиво на bagel cup", "Приду со своей ipa", "Банялучко", "Milk of Amnesia", "Гинесс", "Охота Крепкое", "Хайникен"]}, {"question": "Какой ракеткой играешь?", "author": "Mary Yakushina", "date": "2026-07-16", "answers": ["Babolat Pure Drive", "Wilson Pro Staff", "Head Gravity", "Wilson Clash", "Yonex EZONE", "Деревянной", "Babolat Pure Drive", "Yonex VCORE", "Tecnifibre", "Head Extreme 2022", "Head Extreme 2024", "Head Extreme 2026"]}]}, "mentions_top": [["@nikitacheful", 1438], ["@TennisPartnerBot", 205], ["@dustyo_O", 102], ["@rostomyan", 95], ["@CMONdi", 74], ["@artyom_zhuravlev", 74], ["@ssbortsov", 60], ["@bebugz", 53], ["@mrjiroo", 52], ["@lokomilan", 47], ["@heartik", 44], ["@andrew_khizhnyak", 42], ["@aladgou", 42], ["@temnov", 42], ["@iB21v", 41]], "links_domains_top": [["t.me", 6420], ["maps.app.goo.gl", 473], ["youtube.com", 296], ["instagram.com", 296], ["youtu.be", 224], ["telegra.ph", 172], ["nikitacheful.notion.site", 95], ["goo.gl", 58], ["vk.com", 53], ["teletype.in", 51], ["n1088554.alteg.io", 41], ["primesport.online", 31]], "media_mix": {"text_only": 92405, "sticker": 1247, "poll": 523, "photo": 11462, "video": 2640, "link_preview": 1366, "file": 112}, "media_by_year": {"2023": {"text_only": 5648, "sticker": 35, "poll": 74, "photo": 1342, "video": 117, "link_preview": 113, "file": 2}, "2024": {"text_only": 14724, "photo": 2892, "poll": 130, "link_preview": 239, "video": 514, "sticker": 147, "file": 78}, "2025": {"sticker": 499, "text_only": 32497, "video": 972, "photo": 3833, "link_preview": 548, "file": 22, "poll": 173}, "2026": {"text_only": 39536, "link_preview": 466, "photo": 3395, "poll": 146, "video": 1037, "sticker": 566, "file": 10}}, "forwarded_count": 5059, "bot": {"total": 33253, "by_kind": {"channel_post": 3117, "match_result": 18675, "friendly_match": 577, "game_announcement": 2484, "bot_other": 8400}, "matches_by_month": {"months": ["2023-04", "2023-05", "2023-06", "2023-07", "2023-08", "2023-09", "2023-10", "2023-11", "2023-12", "2024-01", "2024-02", "2024-03", "2024-04", "2024-05", "2024-06", "2024-07", "2024-08", "2024-09", "2024-10", "2024-11", "2024-12", "2025-01", "2025-02", "2025-03", "2025-04", "2025-05", "2025-06", "2025-07", "2025-08", "2025-09", "2025-10", "2025-11", "2025-12", "2026-01", "2026-02", "2026-03", "2026-04", "2026-05", "2026-06", "2026-07", "2026-08", "2026-09"], "counts": [36, 38, 76, 110, 165, 371, 430, 449, 375, 342, 388, 414, 454, 374, 527, 462, 501, 394, 411, 414, 391, 335, 461, 577, 549, 653, 762, 627, 803, 734, 561, 727, 570, 495, 598, 552, 546, 671, 500, 425, 619, 365]}, "matches_by_city": {"other": 8950, "Белград": 7877, "Нови-Сад": 1839, "Панчево": 9}, "most_active_players": [["Alexander Shleyko", 240], ["Oleg Kunitsyn", 146], ["Misha Terpugov", 145], ["Saimon Kataev", 128], ["Roman Vysokov", 124], ["hena s", 122], ["Nikita Sysoev", 121], ["Артур Хасанов", 118], ["Рома Цыкун", 116], ["Alexey Malabar", 111], ["Yuriy Chechulin", 111], ["Константин Члек", 107], ["Sergey Samoylenko", 106], ["Artem Arkhipov", 101], ["Nikita Ushkal", 101]], "match_scores": {"parsed_total": 17890, "singles": 15493, "doubles": 2397, "most_discussed_matches": [{"id": 82833, "date": "2025-11-23", "winner": "Margaryta MargoTennis", "loser": "Никита Черемисин", "score": "7:6", "is_doubles": false, "city": "Нови-Сад", "reactions": 69, "replies": 3, "discussion": 72}, {"id": 137085, "date": "2026-07-19", "winner": "Natasha Safronenko", "loser": "Artem Arkhipov", "score": "6:4", "is_doubles": false, "city": "Белград", "reactions": 70, "replies": 1, "discussion": 71}, {"id": 73346, "date": "2025-10-07", "winner": "Артём Журавлев", "loser": "Никита Черемисин", "score": "6:7  7:6  1:0", "is_doubles": false, "city": "Белград", "reactions": 68, "replies": 2, "discussion": 70}, {"id": 131434, "date": "2026-06-22", "winner": "Oleg Kunitsyn", "loser": "Sasha Tager", "score": "6:3  2:6  1:0", "is_doubles": false, "city": "Белград", "reactions": 65, "replies": 3, "discussion": 68}, {"id": 120061, "date": "2026-04-20", "winner": "Константин Члек", "loser": "Alexander Shleyko", "score": "7:5  5:7  1:0", "is_doubles": false, "city": "Нови-Сад", "reactions": 63, "replies": 1, "discussion": 64}, {"id": 93832, "date": "2026-01-18", "winner": "hena s", "loser": "Ольга Крылова", "score": "6:3", "is_doubles": false, "city": "Белград", "reactions": 54, "replies": 8, "discussion": 62}, {"id": 82192, "date": "2025-11-19", "winner": "Софья Решетникова", "loser": "Sasha Tager", "score": "7:5  6:4", "is_doubles": false, "city": "Белград", "reactions": 57, "replies": 2, "discussion": 59}, {"id": 66754, "date": "2025-08-23", "winner": "Filipp Orlovskiy", "loser": "Семён Ростомян", "score": "6:1  6:0", "is_doubles": false, "city": "Белград", "reactions": 56, "replies": 2, "discussion": 58}, {"id": 88786, "date": "2025-12-21", "winner": "Семён Ростомян", "loser": "Никита Черемисин", "score": "7:5  6:3", "is_doubles": false, "city": "Нови-Сад", "reactions": 57, "replies": 0, "discussion": 57}, {"id": 95319, "date": "2026-01-23", "winner": "Никита Черемисин", "loser": "Семаку Пагину", "score": "6:4  6:3", "is_doubles": false, "city": "Нови-Сад", "reactions": 48, "replies": 8, "discussion": 56}, {"id": 95556, "date": "2026-01-24", "winner": "Ольга Крылова", "loser": "hena s", "score": "6:2", "is_doubles": false, "city": "Белград", "reactions": 53, "replies": 2, "discussion": 55}, {"id": 122379, "date": "2026-05-05", "winner": "Saimon Kataev", "loser": "Alexander Shleyko", "score": "4:6  6:3  1:0", "is_doubles": false, "city": "Белград", "reactions": 51, "replies": 3, "discussion": 54}, {"id": 71296, "date": "2025-09-20", "winner": "Алан Ханаев", "loser": "Катя Стихановская", "score": "7:6", "is_doubles": false, "city": "Белград", "reactions": 51, "replies": 2, "discussion": 53}, {"id": 30194, "date": "2024-10-10", "winner": "Никита Черемисин", "loser": "Артём Журавлев", "score": "7:5  6:7  1:0", "is_doubles": false, "city": null, "reactions": 50, "replies": 2, "discussion": 52}, {"id": 115629, "date": "2026-04-05", "winner": "Alexander Shleyko", "loser": "Maksim Lu", "score": "6:3", "is_doubles": false, "city": "Белград", "reactions": 51, "replies": 1, "discussion": 52}], "score_vs_discussion": [{"bucket": "Плотный матч", "count": 3624, "avg_discussion": 4.207}, {"bucket": "Тай-брейк / решающий сет", "count": 3817, "avg_discussion": 8.3}, {"bucket": "Обычная игра", "count": 6908, "avg_discussion": 5.62}, {"bucket": "Разгром", "count": 1140, "avg_discussion": 7.325}], "rivalries_by_count": [{"player_a": "Максим Пахомов", "player_b": "Семён Ростомян", "matches": 33, "wins_a": 14, "wins_b": 19, "total_discussion": 317, "avg_discussion": 9.606, "avg_game_diff": 5.67, "last_date": "2025-05-17", "last_score": "6:7  6:4  1:0"}, {"player_a": "Aleksandr Limaev", "player_b": "Ilya Nikitin", "matches": 22, "wins_a": 14, "wins_b": 8, "total_discussion": 45, "avg_discussion": 2.045, "avg_game_diff": 4.14, "last_date": "2026-07-16", "last_score": "6:0  5:7  1:0"}, {"player_a": "Денис Сиволап", "player_b": "Петр Долганов", "matches": 21, "wins_a": 6, "wins_b": 15, "total_discussion": 134, "avg_discussion": 6.381, "avg_game_diff": 5.33, "last_date": "2026-02-13", "last_score": "6:4  6:4"}, {"player_a": "Александр К", "player_b": "Никита Черемисин", "matches": 20, "wins_a": 7, "wins_b": 13, "total_discussion": 78, "avg_discussion": 3.9, "avg_game_diff": 6.05, "last_date": "2024-11-01", "last_score": "7:5  7:5"}, {"player_a": "Денис Сиволап", "player_b": "Сергея Мальченко", "matches": 20, "wins_a": 19, "wins_b": 1, "total_discussion": 95, "avg_discussion": 4.75, "avg_game_diff": 4.4, "last_date": "2026-06-18", "last_score": "6:1  4:6  6:4"}, {"player_a": "Артём Журавлев", "player_b": "Никита Черемисин", "matches": 20, "wins_a": 3, "wins_b": 17, "total_discussion": 433, "avg_discussion": 21.65, "avg_game_diff": 4.55, "last_date": "2026-08-02", "last_score": "7:6  6:4"}, {"player_a": "Sergei Kalinichenko", "player_b": "Артему Панферову", "matches": 19, "wins_a": 0, "wins_b": 19, "total_discussion": 28, "avg_discussion": 1.474, "avg_game_diff": 5.26, "last_date": "2024-01-21", "last_score": "6:3"}, {"player_a": "Данил Пуряев", "player_b": "Дима Давыдкин", "matches": 17, "wins_a": 6, "wins_b": 11, "total_discussion": 40, "avg_discussion": 2.353, "avg_game_diff": 3.24, "last_date": "2026-07-13", "last_score": "6:3  6:4"}, {"player_a": "Dmitrii Blokhin", "player_b": "Рома Цыкун", "matches": 17, "wins_a": 7, "wins_b": 10, "total_discussion": 89, "avg_discussion": 5.235, "avg_game_diff": 6.18, "last_date": "2026-06-14", "last_score": "6:0"}, {"player_a": "Roman Tanin", "player_b": "Денис Сиволап", "matches": 16, "wins_a": 0, "wins_b": 16, "total_discussion": 115, "avg_discussion": 7.188, "avg_game_diff": 6.62, "last_date": "2026-02-11", "last_score": "6:2  4:6  1:0"}], "rivalries_by_discussion": [{"player_a": "Артём Журавлев", "player_b": "Никита Черемисин", "matches": 20, "wins_a": 3, "wins_b": 17, "total_discussion": 433, "avg_discussion": 21.65, "avg_game_diff": 4.55, "last_date": "2026-08-02", "last_score": "7:6  6:4"}, {"player_a": "Максим Пахомов", "player_b": "Семён Ростомян", "matches": 33, "wins_a": 14, "wins_b": 19, "total_discussion": 317, "avg_discussion": 9.606, "avg_game_diff": 5.67, "last_date": "2025-05-17", "last_score": "6:7  6:4  1:0"}, {"player_a": "Артём Журавлев", "player_b": "Семён Ростомян", "matches": 11, "wins_a": 0, "wins_b": 11, "total_discussion": 271, "avg_discussion": 24.636, "avg_game_diff": 7.64, "last_date": "2026-07-24", "last_score": "6:2  6:2"}, {"player_a": "Alexander Shleyko", "player_b": "Saimon Kataev", "matches": 8, "wins_a": 2, "wins_b": 6, "total_discussion": 191, "avg_discussion": 23.875, "avg_game_diff": 3.75, "last_date": "2026-05-05", "last_score": "4:6  6:3  1:0"}, {"player_a": "Максим Стегниенко", "player_b": "Никита Черемисин", "matches": 9, "wins_a": 2, "wins_b": 7, "total_discussion": 185, "avg_discussion": 20.556, "avg_game_diff": 5.0, "last_date": "2026-07-10", "last_score": "6:3  6:1"}, {"player_a": "Alexander Shleyko", "player_b": "Константин Члек", "matches": 5, "wins_a": 1, "wins_b": 4, "total_discussion": 165, "avg_discussion": 33.0, "avg_game_diff": 5.4, "last_date": "2026-07-01", "last_score": "7:5  6:2"}, {"player_a": "Oleg Kunitsyn", "player_b": "Константин Белов", "matches": 4, "wins_a": 2, "wins_b": 2, "total_discussion": 150, "avg_discussion": 37.5, "avg_game_diff": 7.5, "last_date": "2026-07-15", "last_score": "6:2  6:1"}, {"player_a": "Alexander Shleyko", "player_b": "Alexey Malabar", "matches": 10, "wins_a": 7, "wins_b": 3, "total_discussion": 144, "avg_discussion": 14.4, "avg_game_diff": 4.1, "last_date": "2026-08-01", "last_score": "7:6"}, {"player_a": "Артём Журавлев", "player_b": "Илья Прокофьев", "matches": 11, "wins_a": 7, "wins_b": 4, "total_discussion": 142, "avg_discussion": 12.909, "avg_game_diff": 4.64, "last_date": "2026-06-18", "last_score": "6:3  6:4"}, {"player_a": "Stas Efremov", "player_b": "Артём Журавлев", "matches": 9, "wins_a": 1, "wins_b": 8, "total_discussion": 140, "avg_discussion": 15.556, "avg_game_diff": 6.22, "last_date": "2026-07-10", "last_score": "6:4  6:2"}], "rivalries_closest": [{"player_a": "Andrei Nemov", "player_b": "Ильяс Шаймухаметов", "matches": 4, "wins_a": 2, "wins_b": 2, "total_discussion": 9, "avg_discussion": 2.25, "avg_game_diff": 1.0, "last_date": "2024-12-14", "last_score": "7:6"}, {"player_a": "Эдуарда Баркова", "player_b": "Якова Зверева", "matches": 3, "wins_a": 0, "wins_b": 3, "total_discussion": 6, "avg_discussion": 2.0, "avg_game_diff": 1.0, "last_date": "2026-01-14", "last_score": "7:6"}, {"player_a": "Nikita Sysoev", "player_b": "Максим Гриднев", "matches": 4, "wins_a": 0, "wins_b": 4, "total_discussion": 18, "avg_discussion": 4.5, "avg_game_diff": 1.25, "last_date": "2025-03-16", "last_score": "7:6"}, {"player_a": "Sergei Osipov", "player_b": "Александра Буйко", "matches": 3, "wins_a": 1, "wins_b": 2, "total_discussion": 0, "avg_discussion": 0.0, "avg_game_diff": 1.33, "last_date": "2023-09-05", "last_score": "6:4"}, {"player_a": "Дима Давыдкин", "player_b": "Игорю Колодкину", "matches": 3, "wins_a": 3, "wins_b": 0, "total_discussion": 8, "avg_discussion": 2.667, "avg_game_diff": 1.33, "last_date": "2024-01-28", "last_score": "6:4"}, {"player_a": "Andrei Nemov", "player_b": "Nik Terekhov", "matches": 3, "wins_a": 1, "wins_b": 2, "total_discussion": 7, "avg_discussion": 2.333, "avg_game_diff": 1.33, "last_date": "2024-06-25", "last_score": "7:5"}, {"player_a": "hena s", "player_b": "Катя Томович", "matches": 3, "wins_a": 1, "wins_b": 2, "total_discussion": 13, "avg_discussion": 4.333, "avg_game_diff": 1.33, "last_date": "2025-12-07", "last_score": "7:6"}, {"player_a": "Andrey Sychev", "player_b": "Дмитрий Косенков", "matches": 3, "wins_a": 1, "wins_b": 2, "total_discussion": 4, "avg_discussion": 1.333, "avg_game_diff": 1.33, "last_date": "2025-09-27", "last_score": "7:6"}, {"player_a": "Nikita Sysoev", "player_b": "Сергею Соколову", "matches": 3, "wins_a": 1, "wins_b": 2, "total_discussion": 3, "avg_discussion": 1.0, "avg_game_diff": 1.33, "last_date": "2026-04-12", "last_score": "7:6"}, {"player_a": "Nikita Sysoev", "player_b": "Константин Белов", "matches": 4, "wins_a": 2, "wins_b": 2, "total_discussion": 7, "avg_discussion": 1.75, "avg_game_diff": 1.5, "last_date": "2025-12-21", "last_score": "7:6"}], "avg_discussion_overall": 5.983}}, "top_words": [["турнир", 2837], ["надо", 2618], ["играть", 2293], ["матч", 1893], ["теннис", 1679], ["корт", 1533], ["nikitacheful", 1472], ["никита", 1437], ["рейтинг", 1418], ["привет", 1414], ["игры", 1389], ["турнира", 1364], ["лига", 1288], ["нови", 1192], ["белграде", 1175], ["какой", 1069], ["артем", 1061], ["сыграть", 1036], ["пару", 1013], ["место", 1002], ["тогда", 995], ["готов", 979], ["счет", 935], ["против", 924], ["теперь", 910], ["играл", 897], ["этого", 877], ["корты", 873], ["саша", 868], ["быть", 835], ["сразу", 827], ["поиграть", 824], ["первый", 820], ["почему", 813], ["турнире", 798], ["лиги", 795], ["сколько", 763], ["такое", 761], ["финал", 745], ["играет", 710], ["всегда", 699], ["парный", 695], ["матчи", 687], ["денис", 676], ["игру", 659], ["интересно", 658], ["рейтинга", 642], ["матчей", 640], ["матча", 638], ["чуть", 636], ["саде", 630], ["андрей", 630], ["нибудь", 626], ["ракетку", 616], ["второй", 606], ["корте", 593], ["вчера", 591], ["играем", 585], ["никто", 581], ["турниры", 580]], "top_bigrams": [["nikitacheful лига", 699], ["нови саде", 627], ["maps app", 387], ["app goo", 387], ["одиночный турнир", 349], ["нови сад", 319], ["турнир белграде", 269], ["парный турнир", 242], ["теннис бота", 237], ["плей офф", 220], ["белграде состав", 206], ["самом деле", 197], ["мини аппе", 196], ["итоги турнира", 190], ["тай брейке", 172], ["турнир силы", 169], ["подробности ссылке", 166], ["подтверди участие", 166], ["instagram reel", 166], ["доп турнир", 161], ["тай брейк", 145], ["поставь реакцию", 143], ["теннис бот", 136], ["нови сада", 136], ["денис сиволап", 131], ["локация maps", 129], ["белграде подробности", 129], ["силы белграде", 129], ["поздравляем победой", 128], ["онлайн турнир", 127]], "venue_mentions": {"Омладински": 173, "Типсаревич": 316, "Ада Циганлия": 0, "Novak Tennis Centre": 40, "Партизан": 289, "Калемегдан": 159, "Baseline": 96, "Ушче": 834}, "pro_player_mentions": [["Джокович", 302], ["Синнер", 244], ["Медведев", 194], ["Зверев", 177], ["Алькарас", 139], ["Рублев", 118], ["Федерер", 47], ["Надаль", 45], ["Соболенко", 33], ["Рыбакина", 29], ["Швентек", 27], ["Гауфф", 8]], "precision": {"partner_search": {"correct": 23, "total": 25}, "courts_venues": {"correct": 22, "total": 25}, "tournaments": {"correct": 24, "total": 25}, "match_talk": {"correct": 24, "total": 25}, "rating_bot": {"correct": 23, "total": 25}, "rules_disputes": {"correct": 22, "total": 25}, "gear": {"correct": 23, "total": 25}, "coaching_technique": {"correct": 23, "total": 25}, "pro_tennis": {"correct": 24, "total": 25}, "injuries_health": {"correct": 22, "total": 25}, "weather_cancel": {"correct": 21, "total": 25}, "social_offtopic": {"correct": 22, "total": 25}, "logistics_cities": {"correct": 24, "total": 25}, "money_payments": {"correct": 23, "total": 25}, "community_admin": {"correct": 22, "total": 25}}, "notes": "**Как классифицировались темы.** Каждое сообщение проверялось на совпадение с\n~15–30 ключевыми словами и стемами на тему (например, \"турнир\", \"корт\", \"рейтинг\").\nТема с наибольшим числом совпадений становится основной; сообщения без совпадений,\nно являющиеся ответом в теме, наследуют тему родительского сообщения (~21% сообщений).\nКороткие реплики (менее 20 символов) и медиа без подписи не классифицируются.\nМетод был проверен и доработан в 4 итерации: правила уточнялись по 150 случайным\nсообщениям на каждой итерации, после чего для каждой из 15 тем вручную проверялась\nточность на 25 случайных совпадениях.\n\n**Известные ограничения:** сообщения бота (TENNIS BOT, BagelTennis, канал\nсообщества) исключены из тематической статистики и показаны отдельно.\nТочность правил по темам — от 84% до 96% (см. таблицу ниже); основная причина\nошибок — омонимы в русском языке (например, стем \"град\" совпадал с \"Белград\",\n\"очк\" — с \"парочка\"). Категория \"другое\" (~21% всех сообщений, ~29% содержательных)\n— это в основном личные шутки и переписка без определённой темы, а не ошибка\nклассификации: чат — это круг постоянных участников с большим количеством\nвнутренних шуток, которые невозможно тематически классифицировать по ключевым\nсловам.", "sentiment": {"mix": {"positive": 10615, "negative": 2645, "neutral": 87415, "positive_share": 0.1054, "negative_share": 0.0263}, "by_topic": [{"key": "injuries_health", "avg_net": -0.1068, "avg_magnitude": 0.4248, "negative_share": 0.2102, "positive_share": 0.1144, "avg_reactions": 1.216}, {"key": "rules_disputes", "avg_net": 0.0421, "avg_magnitude": 0.1549, "negative_share": 0.0436, "positive_share": 0.078, "avg_reactions": 1.161}, {"key": "weather_cancel", "avg_net": 0.0547, "avg_magnitude": 0.1071, "negative_share": 0.0217, "positive_share": 0.0667, "avg_reactions": 1.211}, {"key": "money_payments", "avg_net": 0.0615, "avg_magnitude": 0.1093, "negative_share": 0.0191, "positive_share": 0.0723, "avg_reactions": 1.128}, {"key": "rating_bot", "avg_net": 0.0731, "avg_magnitude": 0.1524, "negative_share": 0.0299, "positive_share": 0.0942, "avg_reactions": 1.2}, {"key": "courts_venues", "avg_net": 0.0735, "avg_magnitude": 0.1385, "negative_share": 0.0248, "positive_share": 0.0861, "avg_reactions": 1.277}, {"key": "partner_search", "avg_net": 0.0744, "avg_magnitude": 0.1273, "negative_share": 0.0231, "positive_share": 0.0793, "avg_reactions": 0.785}, {"key": "coaching_technique", "avg_net": 0.0749, "avg_magnitude": 0.1703, "negative_share": 0.0352, "positive_share": 0.0922, "avg_reactions": 1.325}, {"key": "pro_tennis", "avg_net": 0.0824, "avg_magnitude": 0.1656, "negative_share": 0.0327, "positive_share": 0.0951, "avg_reactions": 1.412}, {"key": "logistics_cities", "avg_net": 0.0885, "avg_magnitude": 0.1432, "negative_share": 0.0206, "positive_share": 0.0963, "avg_reactions": 1.257}, {"key": "gear", "avg_net": 0.1013, "avg_magnitude": 0.1718, "negative_share": 0.026, "positive_share": 0.1013, "avg_reactions": 1.217}, {"key": "community_admin", "avg_net": 0.1415, "avg_magnitude": 0.2058, "negative_share": 0.0239, "positive_share": 0.1202, "avg_reactions": 1.941}, {"key": "match_talk", "avg_net": 0.1974, "avg_magnitude": 0.2736, "negative_share": 0.0255, "positive_share": 0.1594, "avg_reactions": 1.461}, {"key": "tournaments", "avg_net": 0.2022, "avg_magnitude": 0.2657, "negative_share": 0.0218, "positive_share": 0.1363, "avg_reactions": 2.066}, {"key": "social_offtopic", "avg_net": 0.256, "avg_magnitude": 0.3293, "negative_share": 0.0255, "positive_share": 0.2176, "avg_reactions": 1.511}], "by_month": {"months": ["2023-02", "2023-03", "2023-04", "2023-05", "2023-06", "2023-07", "2023-08", "2023-09", "2023-10", "2023-11", "2023-12", "2024-01", "2024-02", "2024-03", "2024-04", "2024-05", "2024-06", "2024-07", "2024-08", "2024-09", "2024-10", "2024-11", "2024-12", "2025-01", "2025-02", "2025-03", "2025-04", "2025-05", "2025-06", "2025-07", "2025-08", "2025-09", "2025-10", "2025-11", "2025-12", "2026-01", "2026-02", "2026-03", "2026-04", "2026-05", "2026-06", "2026-07", "2026-08", "2026-09"], "avg_net": [0.2121, 0.1515, 0.1701, 0.307, 0.2292, 0.2446, 0.2368, 0.3228, 0.2781, 0.2284, 0.2149, 0.1445, 0.1914, 0.1873, 0.1868, 0.1652, 0.1958, 0.2234, 0.1911, 0.1686, 0.135, 0.1195, 0.1531, 0.1154, 0.0854, 0.1579, 0.1633, 0.1552, 0.117, 0.096, 0.1019, 0.077, 0.0604, 0.0662, 0.0863, 0.0814, 0.0644, 0.0637, 0.0718, 0.0782, 0.0637, 0.0684, 0.0672, 0.101], "negative_share": [0.0152, 0.0455, 0.0068, 0.0351, 0.0278, 0.0217, 0.0136, 0.0095, 0.0212, 0.0174, 0.0248, 0.0248, 0.0167, 0.0157, 0.014, 0.0241, 0.016, 0.0213, 0.0122, 0.0196, 0.0239, 0.0195, 0.0238, 0.0268, 0.0345, 0.0236, 0.0173, 0.0347, 0.0283, 0.0261, 0.0273, 0.0312, 0.0246, 0.0264, 0.0214, 0.0299, 0.0273, 0.0312, 0.0293, 0.0293, 0.0293, 0.033, 0.0309, 0.0297]}, "most_negative_messages": [{"id": 114811, "author": "Oleg Kunitsyn", "date": "2026-04-03", "text": "Я понимаю что ты про чувства, я больше пытался подвести к тому что тейк выглядит как \"я работаю больше всех и мне обидно проиграть\".\n\n\"Обидно проиграть\" в этой части я понимаю, а вот \"работаю больше всех\", при всем уважении - не очень, тут все кмк очень много над собой работают, ", "reactions": 1, "topic": "social_offtopic", "net": -4}, {"id": 89066, "author": "Александр Зайцев", "date": "2025-12-23", "text": "Восстанавливаем приводящие мышцы бедра😉\n\n    Приводящие мышцы бедра играют ключевую роль в стабилизации таза и нижних конечностей у теннисистов, обеспечивая контроль над боковыми движениями и резкими сменами направления. \n    Они активно работают при ударах, перемещениях по корту", "reactions": 0, "topic": "injuries_health", "net": -4}, {"id": 114713, "author": "Alexandr Shleyko", "date": "2026-04-03", "text": "меня очень разочаровал огромный плейофф. Я играл два месяца, боролся с игроками чтобы занять первое место и в теории получить несколько более спокойную сетку. По итогу — ничего такого, я получил очень сложную сетку. После отлета в 1/4 вообще непонятно ради чего я сражался в групп", "reactions": 0, "topic": "tournaments", "net": -4}, {"id": 135775, "author": "Ilia Ivanov", "date": "2026-07-15", "text": "А чем травма отличается от снятия? ты мог травмироваться и сняться до, мог травмироваться и сняться во время, одна фигня", "reactions": 0, "topic": "injuries_health", "net": -4}, {"id": 136544, "author": "Svetlana P.", "date": "2026-07-17", "text": "А это прям принципиально, кто тебя раскидывает?)\n\nНу, если кому-то обидно, что его раскидали 1500+200, то мне обидно не заходить в турики )))", "reactions": 0, "topic": "tournaments", "net": -4}, {"id": 138790, "author": "Svetlana P.", "date": "2026-07-30", "text": "Воспаление кольцевой связки (например, вообще там несколько мелких связок, на узи тоже плохо видно)\nУ меня похожая штука была при хронической перегрузке на скалодроме\nБез удара, травмы или явной провокации. Решать проблему пришлось, когда один палец явно воспалился и опух.\nВрачи ", "reactions": 0, "topic": "injuries_health", "net": -4}, {"id": 141521, "author": "Aleksandr Limaev", "date": "2026-08-14", "text": "я что-то не выкупил проблем рейтинга, ведь для тех у кого он не растёт обычно (вроде 1 раз всего было недовольство в лигах) нет проблем пойти играть лигу выше или турнир(тут точно не видел проблем) выше по рейтингу. У нас бурление возникает только когда кто-то с высоким рейтингом", "reactions": 0, "topic": "tournaments", "net": -4}, {"id": 56936, "author": "Di", "date": "2025-06-23", "text": "🎾 Обсуждение участия Катерины и Никиты в парном турнире — краткая адженда:\n1. Ситуация:\n\nКатерина отказалась от участия в турнире после негативной реакции в чате на её пару с Никитой.\n\nВ сообщении присутствует явная личная обида и разочарование.\n\n2. Проблематика:\n\nПоведение отдел", "reactions": 26, "topic": "tournaments", "net": -3}, {"id": 80134, "author": "Anna", "date": "2025-11-12", "text": "Финал истории как теннисная школа кинула меня-новичка на 260€.\n\nКто бы мог подумать, да?\nОни перестали отвечать мне в Инстаграм, просто игнорируют.\n\nПоследнее, на чём мы остановились - они пообещали либо найти человека на моё место и вернуть все деньги (195€ за зимний сезон, кото", "reactions": 11, "topic": "community_admin", "net": -3}, {"id": 111546, "author": "Artem Arkhipov", "date": "2026-03-26", "text": "самое обидное ставки на олега появились после того как я стасе кинул ссылку на бронь", "reactions": 5, "topic": "courts_venues", "net": -3}], "most_positive_messages": [{"id": 35041, "author": "Di", "date": "2024-12-07", "text": "Когда несколько участников набрали одинаковое количество побед в круговом турнире (каждый играет с каждым), обычно используются дополнительные критерии для определения победителя. Вот типичные подходы, которые помогут:\n\n1. Личные встречи\nЕсли между участниками с одинаковым количе", "reactions": 0, "topic": "match_talk", "net": 16}, {"id": 130630, "author": "Mikhail Saskovets", "date": "2026-06-17", "text": "Ребята, привет!\n\nНезаметно пролетел месяц, и вот я уже снова сижу в самолете, а значит время для моих любимых сентиментов настало) Я хочу сказать огромное спасибо каждому, с кем мне удалось провести время за этот невероятно насыщенный период в Сербии! Спасибо партнерам, спасибо с", "reactions": 73, "topic": "community_admin", "net": 15}, {"id": 106349, "author": "Никита Черемисин", "date": "2026-03-09", "text": "Итак друзья, расклады по группам Серебряной Лиги (дабы замотивировать всех доиграть свои матчи)\n\nГруппа А\n\nБорис Блейд гарантировал себе первое место в группе. Оставшийся матч с Артёмом для него ничего не решает — Никита не сможет обогнать Борю из-за результата личной встречи реб", "reactions": 9, "topic": "tournaments", "net": 14}, {"id": 60871, "author": "Никита Черемисин", "date": "2025-07-14", "text": "Чуть затихло, самое время подвести итоги 6 сезона bagel лиги🔥\nИ начислить финалистам bagel coin\n\nКремниевая\n🏆 Настя Щербинина @Shcherbinina_Anastasija – максимально заслуженная уверенная победа, классно закрепилась, теперь идет покорять следующую ступень \n🥈 Ваня Михайлюков @aim11", "reactions": 30, "topic": "tournaments", "net": 12}, {"id": 43547, "author": "Никита Черемисин", "date": "2025-03-01", "text": "Сегодня разыграли кубок женского турнира🏆🔥💃\n\nЕсли коротко – девушки рубятся до победного. Несмотря на счет идут до конца\n\nНастя Щербинина показала очень крутую игру, смогла на тай-брейке против Маши отыграться с 2:5 и выиграть сет, а затем Асе навязать борьбу в 1/4(на тай совсем ", "reactions": 43, "topic": "tournaments", "net": 11}, {"id": 49639, "author": "Никита Черемисин", "date": "2025-04-26", "text": "После обеда сыграли супер душевный парный турик силы до 1600❤️\n\n⚡️ Оля и Дима сегодня 2 раза делали камбек, в 1/4 с 3:5 - отыгрались и забрали тай. В 1/2 отыгрывались с 1:5, на тае немного не хватило. \nОтличная сыгранная пара, сегодня чуть не повезло, 4-ые\n\n⚡️ Олег и Паша - единс", "reactions": 40, "topic": "match_talk", "net": 11}, {"id": 37675, "author": "Никита Черемисин", "date": "2024-12-30", "text": "Всем привет, подведем итоги 4 сезона теннисной лиги в Нови Саде🔥\n\nКоротко о том, как распределял места, приоритет критериев:\n1. Сыграно максимально игр\n2. Победы в матчах\n3. Если победы одинаковые, смотрю личные встречи\n\nВ Бронзовой лиги 6 из 8 игроков были новыми, проходили свою", "reactions": 18, "topic": "match_talk", "net": 11}, {"id": 44922, "author": "Артем Чепланов | Self-service Coffee points", "date": "2025-03-16", "text": "Вчера прошел огненный парный турнир силы до 1600🔥\n\nПочему 🔥?\nПотому что те кто проиграли первый свой матч 1:6, в итоге вышли в финал, те кто считали себя фаворитами победили в итоге в доп.турнире, ну и просто вчера очень круто провели время на кортах Baseline, начиная с того что ", "reactions": 18, "topic": "match_talk", "net": 11}, {"id": 28437, "author": "Никита Черемисин", "date": "2024-09-12", "text": "Итак, подводим итог Золотой Лиги в Нови Саде💪\n\n🏆Победителем становится Андрей Лавров @andreilavrov61 \nНе сказать, что его путь был простым, особенно матч с Денисом. Где на решающем тай брейке собрав всю волю Денис вырвал победу.\n\nОтличные сезон в лиге, много уверенных побед, Андр", "reactions": 6, "topic": "tournaments", "net": 11}, {"id": 34580, "author": "Никита Черемисин", "date": "2024-12-01", "text": "Фух, такого напряжения на турнире я давно не испытывал, особенно в категории до 700🔥️️️️️️\n\nРебята так жестко рубились, не отдавая инициативу своему сопернику.\n\nИз интересного: \n🔸Наташа вытащила матч тай-брейке против Вовы и вышла в основную сетку, большая победа\n🔹 Коля в полуфин", "reactions": 40, "topic": "tournaments", "net": 10}], "avg_reactions_by_label": {"positive": 2.933, "negative": 1.579, "neutral": 1.217}, "avg_reactions_by_magnitude": {"0": 1.213, "1": 1.822, "2": 3.722, "3+": 12.163}, "count_by_magnitude": {"0": 87102, "1": 10947, "2": 1872, "3+": 754}, "reaction_text_agreement": {"agree": 4954, "disagree": 1117}, "most_negative_days": [{"date": "2024-10-17", "avg_net": -0.089, "count": 45}, {"date": "2026-09-07", "avg_net": -0.071, "count": 56}, {"date": "2025-10-01", "avg_net": -0.062, "count": 32}, {"date": "2025-09-30", "avg_net": -0.059, "count": 51}, {"date": "2025-01-07", "avg_net": -0.056, "count": 18}, {"date": "2024-01-11", "avg_net": -0.053, "count": 19}, {"date": "2024-05-02", "avg_net": -0.053, "count": 19}, {"date": "2024-05-15", "avg_net": -0.053, "count": 57}], "most_positive_days": [{"date": "2025-06-29", "avg_net": 0.941, "count": 34}, {"date": "2024-07-08", "avg_net": 0.933, "count": 15}, {"date": "2024-02-17", "avg_net": 0.926, "count": 27}, {"date": "2023-09-27", "avg_net": 0.864, "count": 22}, {"date": "2025-05-04", "avg_net": 0.852, "count": 27}, {"date": "2023-09-28", "avg_net": 0.765, "count": 17}, {"date": "2023-10-07", "avg_net": 0.739, "count": 23}, {"date": "2024-07-15", "avg_net": 0.733, "count": 15}], "venues": [{"name": "Baseline", "mentions": 96, "avg_net": 0.7292, "positive_share": 0.25, "negative_share": 0.0208, "avg_reactions": 8.51, "best_quote": {"id": 44922, "author": "Артем Чепланов | Self-service Coffee points", "date": "2025-03-16", "text": "Вчера прошел огненный парный турнир силы до 1600🔥\n\nПочему 🔥?\nПотому что те кто проиграли первый свой матч 1:6, в итоге вышли в финал, те кто считали себя фаворитами победили в итоге в доп.турнире, ну и просто вчера очень", "reactions": 18}, "worst_quote": {"id": 29675, "author": "Никита Черемисин", "date": "2024-10-02", "text": "Друзья, прогноз на эти выходные совсем грустный, открытые корты вряд ли успеют просохнуть, и играть в +14 с ветром – такое себе\n\nПоэтому переходим в закрытые корты\nОткроем турнирный зимний сезон уже в эти выходные.\n\nТурн", "reactions": 30}}, {"name": "Novak Tennis Centre", "mentions": 40, "avg_net": 0.35, "positive_share": 0.225, "negative_share": 0.0, "avg_reactions": 3.625, "best_quote": {"id": 48212, "author": "Никита Черемисин", "date": "2025-04-14", "text": "Друзья, всем привет, сегодня публикую инфу по 6 сезону теннисной лиги🔥️️️️️️\n\nКороткие итоги прошедших выходных:\n🏆 Сергей Мальченко: победитель одиночного турнира до 1000\n🏆 Никита Сысоев: победитель одиночного турнира 12", "reactions": 19}, "worst_quote": null}, {"name": "Ушче", "mentions": 834, "avg_net": 0.2686, "positive_share": 0.1715, "negative_share": 0.048, "avg_reactions": 1.819, "best_quote": {"id": 35041, "author": "Di", "date": "2024-12-07", "text": "Когда несколько участников набрали одинаковое количество побед в круговом турнире (каждый играет с каждым), обычно используются дополнительные критерии для определения победителя. Вот типичные подходы, которые помогут:\n\n", "reactions": 0}, "worst_quote": {"id": 73529, "author": "Igor Zhivotov", "date": "2025-10-08", "text": "поведение выглядит совсем не healthy, причем уже который матч подряд: при первых проблемах включается режим бурчания и возмущения после ровно каждого проигранного очка, причем не всегда слышно, что говорит, но выглядит к", "reactions": 4}}, {"name": "Партизан", "mentions": 289, "avg_net": 0.1349, "positive_share": 0.1142, "negative_share": 0.0104, "avg_reactions": 1.734, "best_quote": {"id": 119146, "author": "Denis Mukha", "date": "2026-04-18", "text": "Всем привет. Я только переехал в Белград но уже жажду игры в теннис) \n\nИграю где то на 3.5 NTRP, не знаю как тут это считается. Живу в районе Врачар, у Чубарского парка. Буду рад сыграть с кем то завтра, в идеале утром и", "reactions": 0}, "worst_quote": {"id": 12858, "author": "Ilia Ivanov", "date": "2024-02-10", "text": "Видимо в БГ корты Шредингера😄\n\nНа Аде некоторые скользят, падают или даже травмируются, но другим норм)\n\nЯ все игры в Омладинском на 1 корте играю (дальний от входа, если правильно понял), про ямы не слышал, но там часто", "reactions": 0}}, {"name": "Типсаревич", "mentions": 316, "avg_net": 0.1297, "positive_share": 0.0886, "negative_share": 0.0222, "avg_reactions": 2.222, "best_quote": {"id": 52602, "author": "Никита Черемисин", "date": "2025-05-24", "text": "С обеда играли топовый Микст турнир 🔥\n\nСупер ровный состав, плотные игры, кучу тай брейков и неочевидный результат до самого конца (хотя я потом посмотрел, первые по посеву - забрали кубок)\n\nПриятно видеть, как нашу комп", "reactions": 25}, "worst_quote": {"id": 65444, "author": "Semyon Rostomyan", "date": "2025-08-15", "text": "ваще конечно звучит очень неприятно, не по уровню имени Типсаревича", "reactions": 4}}, {"name": "Калемегдан", "mentions": 159, "avg_net": 0.0943, "positive_share": 0.0881, "negative_share": 0.0126, "avg_reactions": 2.95, "best_quote": {"id": 29789, "author": "Алена Солнце", "date": "2024-10-05", "text": "Всем привет! Новости с кортов Калемегдана, они сегодня работают с 14:00, а если верить погоде Яндекса, то будет облачно, но не дождливо 🌥️ (они корты уже привели в порядок, все супер пупер)\n\nхочу передать бронь, есть на ", "reactions": 7}, "worst_quote": {"id": 15703, "author": "Ilia Ivanov", "date": "2024-03-23", "text": "Калемегдан пока не советую, корты убитые, не ухоженные, ужас. Ботинки на них роют ямы, под грунтом прямо глина какая-то выкапывается. \n3 корт для пары тоже плох, углы зарыты.", "reactions": 2}}, {"name": "Омладински", "mentions": 173, "avg_net": 0.0462, "positive_share": 0.0636, "negative_share": 0.0289, "avg_reactions": 0.913, "best_quote": {"id": 90902, "author": "Mikhail Sokolov", "date": "2026-01-05", "text": "Итак, пришло время поднять бабла. Расчехляйте свои багелькоины, лудоманы, подъезжает новый контент.\n\nВ левом углу ринга - молодой перспективный @poleexperimentov. Призер турниров до 400 и парных до 1200\n\nВ правом углу ри", "reactions": 18}, "worst_quote": {"id": 12858, "author": "Ilia Ivanov", "date": "2024-02-10", "text": "Видимо в БГ корты Шредингера😄\n\nНа Аде некоторые скользят, падают или даже травмируются, но другим норм)\n\nЯ все игры в Омладинском на 1 корте играю (дальний от входа, если правильно понял), про ямы не слышал, но там часто", "reactions": 0}}]}, "sentiment_notes": "**Как считалась тональность.** Простой лексикон из ~70 позитивных и ~70\nнегативных русских стемов (\"круто\", \"спасибо\", \"обидно\", \"бесит\" и т.п.) с базовой\nобработкой отрицания (\"не расстроен\" и \"нерасстроен\" переворачивают знак).\nОтдельно посчитана \"тональность реакций\" — знак эмодзи-реакций (🔥❤️👍 = плюс,\n😢👎😡 = минус), это независимый сигнал, не текстовый.\n\n**Важное предупреждение.** Это самый ненадёжный показатель на странице. Чат полон\nдружеского троллинга и мата, которые формально читаются как негатив, но по сути\nтаковым не являются (\"ты долбоёб\" в этом чате — комплимент после хорошего матча).\nЛексикон не понимает иронию, сарказм и контекст. Обращайтесь с разделом\n«Тональность» как с грубым индикатором тренда, а не точным измерением\nэмоций. Точность на ручной выборке — ощутимо ниже, чем у тематической\nклассификации выше.", "bot_matches_notes": "**Как разобран счёт.** Каждое сообщение бота с результатом матча парсится\nрегулярными выражениями: кто выиграл/проиграл, счёт по сетам, город, номер матча.\n95,8% таких сообщений (17 890 из 18 675) удалось разобрать; остальное — текстовые\nитоги турниров без структурированного счёта (\"коротко об итогах…\"), которые\nклассификатор тем пометил как результат матча по ошибке (в них действительно\nупоминаются \"выиграл\"/\"#счёт\", но формат другой).\n\n**Важная техническая деталь, которая едва не испортила весь раздел.** Бот описывает\nматч двумя способами — \"X выиграл у Y\" и \"X проиграл Y\" — и во втором случае имя\nпроигравшего называется первым. Первая версия парсера не учитывала это и в 27%\nматчей (там, где использовалась формулировка \"проиграл\") путала победителя с\nпроигравшим. Исправлено и перепроверено на конкретных примерах.\n\n**Известные ограничения:** имена спускаются в родительном/дательном падеже\n(\"Ивана\", \"Артёму\") в зависимости от формулировки; их сворачивают в одного игрока\nпо грубому правилу (отрезать конечные гласные), которое иногда даёт слишком\nкороткий \"корень\" имени и теоретически может слить разных игроков с очень похожими\nименами — вручную это не проверялось построчно. Парные и микст-матчи (2397, ~13%)\nисключены из анализа соперничеств (слишком сложно надёжно разобрать состав пар),\nно учтены в общей статистике бота. «Обсуждение» матча — это реакции на сообщение\nбота плюс прямые ответы на него; более глубокие ветки обсуждения (ответы на ответы)\nне учитывались."}</script>
+<script>
+const STATS = JSON.parse(document.getElementById('stats-data').textContent);
+
+function fmt(n) {
+  return Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+}
+function pct(x, digits=1) { return (x*100).toFixed(digits).replace('.', ',') + '%'; }
+function ruDate(iso) {
+  const months = ['янв','фев','мар','апр','мая','июн','июл','авг','сен','окт','ноя','дек'];
+  const [y,m,d] = iso.split('-');
+  return `${parseInt(d)} ${months[parseInt(m)-1]} ${y}`;
+}
+function esc(s) {
+  return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+const rootStyle = getComputedStyle(document.documentElement);
+function cssVar(name) { return rootStyle.getPropertyValue(name).trim(); }
+Chart.defaults.font.family = "'Golos Text', sans-serif";
+Chart.defaults.color = cssVar('--text-muted');
+Chart.defaults.borderColor = cssVar('--border');
+
+const REAL_TOPICS = STATS.topics.filter(t => !t.is_fallback);
+const FALLBACK_TOPICS = STATS.topics.filter(t => t.is_fallback);
+
+// ---------------- Hero ----------------
+document.getElementById('chat-title').textContent = 'Bagel Tennis Community';
+document.getElementById('hero-sub').textContent =
+  `Чат теннисного сообщества Белград · Нови-Сад · Панчево, ${STATS.meta.members} участников. ` +
+  `${ruDate(STATS.meta.first_msg)} — ${ruDate(STATS.meta.last_msg)}.`;
+
+const heroTiles = [
+  ['Сообщений всего', fmt(STATS.meta.total_msgs)],
+  ['От людей', fmt(STATS.meta.human_msgs)],
+  ['Авторов', fmt(STATS.meta.authors)],
+  ['Активны в 2026', fmt(STATS.meta.authors_active_2026)],
+  ['Реакций', fmt(STATS.meta.reactions_total)],
+  ['Доля ответов', pct(STATS.meta.reply_share)],
+];
+document.getElementById('hero-tiles').innerHTML = heroTiles.map(([l,v]) =>
+  `<div class="tile"><div class="v num">${v}</div><div class="l">${l}</div></div>`).join('');
+
+document.getElementById('cap-human-total').textContent = fmt(STATS.meta.human_msgs);
+document.getElementById('footer-range').textContent = `${ruDate(STATS.meta.first_msg)} — ${ruDate(STATS.meta.last_msg)}`;
+
+// ---------------- Topics bar + donut ----------------
+new Chart(document.getElementById('chart-topics-bar'), {
+  type: 'bar',
+  data: {
+    labels: REAL_TOPICS.map(t => t.emoji + ' ' + t.label_ru),
+    datasets: [{
+      data: REAL_TOPICS.map(t => t.count),
+      backgroundColor: REAL_TOPICS.map(t => t.color),
+      borderRadius: 4,
+      barThickness: 16,
+    }]
+  },
+  options: {
+    indexAxis: 'y',
+    responsive: true, maintainAspectRatio: false,
+    plugins: {
+      legend: { display: false },
+      tooltip: { callbacks: { label: (c) => `${fmt(c.raw)} сообщ. · ${pct(REAL_TOPICS[c.dataIndex].share)}` } },
+      title: { display: true, text: 'Темы разговоров (без коротких реплик и «другого»)', color: cssVar('--text'), font: { size: 13, weight: '600' }, align: 'start', padding: { bottom: 10 } }
+    },
+    scales: {
+      x: { grid: { color: cssVar('--border') }, ticks: { color: cssVar('--text-muted') } },
+      y: { grid: { display: false }, ticks: { color: cssVar('--text'), font: { size: 11.5 } } }
+    }
+  }
+});
+
+new Chart(document.getElementById('chart-topics-donut'), {
+  type: 'doughnut',
+  data: {
+    labels: REAL_TOPICS.map(t => t.label_ru),
+    datasets: [{ data: REAL_TOPICS.map(t => t.count), backgroundColor: REAL_TOPICS.map(t => t.color), borderColor: cssVar('--surface'), borderWidth: 2 }]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: {
+      legend: { display: false },
+      title: { display: true, text: 'Доля от классифицированных тем', color: cssVar('--text'), font: { size: 13, weight: '600' }, align: 'start', padding: { bottom: 10 } },
+      tooltip: { callbacks: { label: (c) => `${c.label}: ${fmt(c.raw)} (${pct(c.raw / REAL_TOPICS.reduce((a,t)=>a+t.count,0))})` } }
+    }
+  }
+});
+
+document.getElementById('fallback-row').innerHTML = FALLBACK_TOPICS.map(t =>
+  `<div class="fallback-pill"><b>${fmt(t.count)}</b>${t.emoji} ${t.label_ru} · ${pct(t.share)}</div>`).join('');
+
+// ---------------- Topic cards ----------------
+document.getElementById('topic-cards').innerHTML = REAL_TOPICS.map(t => {
+  const best = t.examples[0];
+  const extra = t.examples.slice(1).map(e =>
+    `<div class="extra-ex"><b>${esc(e.author)}</b>, ${ruDate(e.date)}, ${e.reactions} реакц.: «${esc(e.text)}»</div>`).join('');
+  const authors = t.top_authors.map(a => `${esc(a[0])} (${a[1]})`).join(', ');
+  return `<div class="topic-card" style="--tc:${t.color}">
+    <div class="head"><div class="name"><span class="emoji">${t.emoji}</span>${t.label_ru}</div><div class="count num">${fmt(t.count)}</div></div>
+    <div class="share">${pct(t.share)} от тем · в среднем ${t.avg_reactions.toFixed(1)} реакц.</div>
+    <div class="terms">${t.top_terms.slice(0,6).map(w => `<span class="chip">${esc(w[0])}</span>`).join('')}</div>
+    ${best ? `<div class="quote">«${esc(best.text)}» <b>— ${esc(best.author)}</b>, ${ruDate(best.date)} (${best.reactions} 🔥)</div>` : ''}
+    <details><summary>Ещё примеры и авторы →</summary>${extra}<div class="authors">Часто пишут: ${authors}</div></details>
+  </div>`;
+}).join('');
+
+// ---------------- Topic dynamics (stacked area) ----------------
+const monthsT = STATS.topic_by_month.months;
+const seriesT = STATS.topic_by_month.series;
+function buildAreaDatasets(pctMode) {
+  if (!pctMode) {
+    return REAL_TOPICS.map(t => ({
+      label: t.label_ru, data: seriesT[t.key], backgroundColor: t.color + 'cc', borderColor: t.color, fill: true, pointRadius: 0, borderWidth: 1, tension: 0.25
+    }));
+  }
+  const totals = monthsT.map((_, i) => REAL_TOPICS.reduce((s,t) => s + seriesT[t.key][i], 0) || 1);
+  return REAL_TOPICS.map(t => ({
+    label: t.label_ru, data: seriesT[t.key].map((v,i) => 100*v/totals[i]), backgroundColor: t.color + 'cc', borderColor: t.color, fill: true, pointRadius: 0, borderWidth: 1, tension: 0.25
+  }));
+}
+let areaChart = new Chart(document.getElementById('chart-topics-area'), {
+  type: 'line',
+  data: { labels: monthsT, datasets: buildAreaDatasets(true) },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    interaction: { mode: 'index', intersect: false },
+    plugins: { legend: { display: false }, tooltip: { itemSort: (a,b) => b.raw - a.raw } },
+    scales: {
+      x: { stacked: true, ticks: { color: cssVar('--text-muted'), maxTicksLimit: 14 }, grid: { display: false } },
+      y: { stacked: true, min: 0, max: 100, ticks: { color: cssVar('--text-muted') }, grid: { color: cssVar('--border') } }
+    }
+  }
+});
+document.getElementById('btn-pct').onclick = () => {
+  areaChart.data.datasets = buildAreaDatasets(true);
+  areaChart.options.scales.y.min = 0;
+  areaChart.options.scales.y.max = 100;
+  areaChart.update();
+  document.getElementById('btn-pct').classList.add('active');
+  document.getElementById('btn-abs').classList.remove('active');
+};
+document.getElementById('btn-abs').onclick = () => {
+  areaChart.data.datasets = buildAreaDatasets(false);
+  areaChart.options.scales.y.min = 0;
+  areaChart.options.scales.y.max = undefined;
+  areaChart.update();
+  document.getElementById('btn-abs').classList.add('active');
+  document.getElementById('btn-pct').classList.remove('active');
+};
+
+// find topic with biggest share growth from first half to second half for caption
+(function() {
+  const half = Math.floor(monthsT.length/2);
+  let best = null, bestDelta = -Infinity;
+  REAL_TOPICS.forEach(t => {
+    const totalsFirst = monthsT.slice(0, half).reduce((s,_,i) => s + seriesT[t.key][i], 0);
+    const totalsSecond = monthsT.slice(half).reduce((s,_,i) => s + seriesT[t.key][i+half], 0);
+    const allFirst = REAL_TOPICS.reduce((s,tt) => s + monthsT.slice(0,half).reduce((ss,_,i) => ss + seriesT[tt.key][i], 0), 0) || 1;
+    const allSecond = REAL_TOPICS.reduce((s,tt) => s + monthsT.slice(half).reduce((ss,_,i) => ss + seriesT[tt.key][i+half], 0), 0) || 1;
+    const delta = (totalsSecond/allSecond) - (totalsFirst/allFirst);
+    if (delta > bestDelta) { bestDelta = delta; best = t; }
+  });
+  document.getElementById('dynamics-caption').textContent =
+    `Сильнее всего выросла доля темы «${best.label_ru}» — с ${pct(bestDelta > 0 ? (bestDelta) : 0)} условного прироста доли между первой и второй половиной периода наблюдений.`;
+})();
+
+// ---------------- Topic × hour heatmap ----------------
+(function() {
+  const hourData = STATS.topic_by_hour;
+  let maxShare = 0;
+  const shares = {};
+  REAL_TOPICS.forEach(t => {
+    const arr = hourData[t.key];
+    const total = arr.reduce((a,b)=>a+b,0) || 1;
+    shares[t.key] = arr.map(v => v/total);
+    shares[t.key].forEach(s => { if (s > maxShare) maxShare = s; });
+  });
+  let html = '<div class="heatmap-hours"><span></span>' + Array.from({length:24},(_,h)=>`<span>${h}</span>`).join('') + '</div>';
+  REAL_TOPICS.forEach(t => {
+    html += `<div class="heatmap-row"><div class="heatmap-label" title="${t.label_ru}">${t.emoji} ${t.label_ru}</div>`;
+    shares[t.key].forEach(s => {
+      const alpha = 0.08 + 0.92 * (s / maxShare);
+      html += `<div class="heatmap-cell" style="background:${t.color}; opacity:${alpha.toFixed(2)}" title="${(s*100).toFixed(1)}%"></div>`;
+    });
+    html += '</div>';
+  });
+  document.getElementById('heatmap-topic-hour').innerHTML = '<div class="heatmap">' + html + '</div>';
+})();
+
+// ---------------- Co-occurrence table ----------------
+(function() {
+  const byKey = Object.fromEntries(STATS.topics.map(t => [t.key, t]));
+  const rows = STATS.topic_cooccurrence.slice(0, 10).map(([a,b,c]) =>
+    `<tr><td>${byKey[a].emoji} ${byKey[a].label_ru}</td><td>${byKey[b].emoji} ${byKey[b].label_ru}</td><td class="num">${fmt(c)}</td></tr>`).join('');
+  document.getElementById('table-cooc').innerHTML =
+    `<thead><tr><th>Тема A</th><th>Тема B</th><th>Сообщений</th></tr></thead><tbody>${rows}</tbody>`;
+})();
+
+// ---------------- Engagement chart ----------------
+new Chart(document.getElementById('chart-engagement'), {
+  type: 'bar',
+  data: {
+    labels: REAL_TOPICS.slice().sort((a,b)=>b.avg_reactions-a.avg_reactions).map(t => t.emoji + ' ' + t.label_ru),
+    datasets: [{ data: REAL_TOPICS.slice().sort((a,b)=>b.avg_reactions-a.avg_reactions).map(t => t.avg_reactions),
+      backgroundColor: REAL_TOPICS.slice().sort((a,b)=>b.avg_reactions-a.avg_reactions).map(t => t.color), borderRadius: 4, barThickness: 14 }]
+  },
+  options: {
+    indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { display: false }, tooltip: { callbacks: { label: (c) => `${c.raw.toFixed(2)} реакции/сообщ.` } },
+      title: { display: true, text: 'Среднее число реакций на сообщение', color: cssVar('--text'), font: { size: 13, weight: '600' }, align: 'start', padding: { bottom: 10 } } },
+    scales: { x: { grid: { color: cssVar('--border') } }, y: { grid: { display: false }, ticks: { font: { size: 11 } } } }
+  }
+});
+
+// ---------------- Activity: monthly stacked ----------------
+new Chart(document.getElementById('chart-monthly'), {
+  type: 'bar',
+  data: {
+    labels: STATS.monthly.months,
+    datasets: [
+      { label: 'Люди', data: STATS.monthly.human, backgroundColor: cssVar('--accent'), stack: 's', borderRadius: 2 },
+      { label: 'Боты/канал', data: STATS.monthly.bot, backgroundColor: cssVar('--text-faint'), stack: 's', borderRadius: 2 },
+    ]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { position: 'top', labels: { boxWidth: 10, color: cssVar('--text-muted') } },
+      title: { display: true, text: 'Сообщения по месяцам', color: cssVar('--text'), font: { size: 13, weight: '600' }, align: 'start' } },
+    scales: { x: { stacked: true, ticks: { maxTicksLimit: 16, color: cssVar('--text-muted') }, grid: { display: false } },
+      y: { stacked: true, grid: { color: cssVar('--border') } } }
+  }
+});
+
+new Chart(document.getElementById('chart-authors-month'), {
+  type: 'bar',
+  data: {
+    labels: STATS.monthly.months,
+    datasets: [
+      { type: 'line', label: 'Активных авторов', data: STATS.monthly.unique_authors, borderColor: cssVar('--accent'), backgroundColor: cssVar('--accent'), pointRadius: 0, borderWidth: 2, tension: 0.25 },
+      { label: 'Новых авторов', data: STATS.monthly.new_authors, backgroundColor: cssVar('--text-faint'), borderRadius: 2 },
+    ]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { position: 'top', labels: { boxWidth: 10, color: cssVar('--text-muted') } },
+      title: { display: true, text: 'Активные и новые авторы по месяцам', color: cssVar('--text'), font: { size: 13, weight: '600' }, align: 'start' } },
+    scales: { x: { ticks: { maxTicksLimit: 10, color: cssVar('--text-muted') }, grid: { display: false } }, y: { grid: { color: cssVar('--border') } } }
+  }
+});
+
+document.getElementById('tiles-yearly').innerHTML = Object.entries(STATS.yearly).map(([y,c]) =>
+  `<div class="tile"><div class="v num">${fmt(c)}</div><div class="l">${y}</div></div>`).join('');
+
+(function() {
+  const wh = STATS.weekday_hour;
+  const days = ['Пн','Вт','Ср','Чт','Пт','Сб','Вс'];
+  const max = Math.max(...wh.flat());
+  let html = '<div class="heatmap-hours"><span></span>' + Array.from({length:24},(_,h)=>`<span>${h}</span>`).join('') + '</div>';
+  days.forEach((d,di) => {
+    html += `<div class="heatmap-row"><div class="heatmap-label">${d}</div>`;
+    wh[di].forEach(v => {
+      const alpha = 0.08 + 0.92*(v/max);
+      html += `<div class="heatmap-cell" style="background:${cssVar('--accent')}; opacity:${alpha.toFixed(2)}" title="${v}"></div>`;
+    });
+    html += '</div>';
+  });
+  document.getElementById('heatmap-weekday-hour').innerHTML = '<div class="heatmap">' + html + '</div>';
+})();
+
+(function() {
+  const byKey = Object.fromEntries(STATS.topics.map(t => [t.key, t]));
+  const rows = STATS.busiest_days.map(d =>
+    `<tr><td>${ruDate(d.date)}</td><td class="num">${fmt(d.count)}</td><td>${byKey[d.top_topic].emoji} ${byKey[d.top_topic].label_ru}</td><td style="max-width:340px;">${esc(d.sample)}</td></tr>`).join('');
+  document.getElementById('table-busiest').innerHTML =
+    `<thead><tr><th>Дата</th><th>Сообщений</th><th>Топ-тема дня</th><th>Самое обсуждаемое сообщение</th></tr></thead><tbody>${rows}</tbody>`;
+})();
+
+// ---------------- People ----------------
+const topA = STATS.top_authors;
+new Chart(document.getElementById('chart-top-authors'), {
+  type: 'bar',
+  data: {
+    labels: topA.map(a => a.name),
+    datasets: [{ data: topA.map(a => a.msgs), backgroundColor: cssVar('--accent'), borderRadius: 4, barThickness: 12 }]
+  },
+  options: {
+    indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { display: false },
+      tooltip: { callbacks: { label: (c) => `${fmt(c.raw)} сообщ. · ${topA[c.dataIndex].reactions_received} реакций получено` } },
+      title: { display: true, text: 'Топ-20 авторов по числу сообщений', color: cssVar('--text'), font: { size: 13, weight: '600' }, align: 'start' } },
+    scales: { x: { grid: { color: cssVar('--border') } }, y: { grid: { display: false }, ticks: { font: { size: 11 } } } }
+  }
+});
+
+document.getElementById('tiles-concentration').innerHTML = [
+  ['Топ-10% авторов пишут', pct(STATS.author_concentration.top10_share)],
+  ['Топ-50% авторов пишут', pct(STATS.author_concentration.top50_share)],
+  ['Индекс Джини', STATS.author_concentration.gini.toFixed(2)],
+].map(([l,v]) => `<div class="tile"><div class="v num">${v}</div><div class="l">${l}</div></div>`).join('');
+
+new Chart(document.getElementById('chart-author-buckets'), {
+  type: 'bar',
+  data: {
+    labels: ['1–9', '10–99', '100–999', '1000+'],
+    datasets: [{ data: [STATS.author_buckets['1-9'], STATS.author_buckets['10-99'], STATS.author_buckets['100-999'], STATS.author_buckets['1000+']], backgroundColor: cssVar('--accent'), borderRadius: 4 }]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { display: false }, title: { display: true, text: 'Сколько авторов написали N сообщений', color: cssVar('--text'), font: { size: 13, weight: '600' }, align: 'start' } },
+    scales: { x: { grid: { display: false } }, y: { grid: { color: cssVar('--border') } } }
+  }
+});
+
+(function() {
+  const rows = STATS.most_reacted_authors_relative.map(([name, avg, cnt]) =>
+    `<tr><td>${esc(name)}</td><td class="num">${avg.toFixed(2)}</td><td class="num">${fmt(cnt)}</td></tr>`).join('');
+  document.getElementById('table-favorites').innerHTML =
+    `<thead><tr><th>Автор</th><th>Реакций/сообщ.</th><th>Всего сообщений</th></tr></thead><tbody>${rows}</tbody>`;
+})();
+
+// ---------------- Engagement/reactions ----------------
+new Chart(document.getElementById('chart-emoji'), {
+  type: 'bar',
+  data: {
+    labels: STATS.reactions_top_emoji.map(e => e[0]),
+    datasets: [{ data: STATS.reactions_top_emoji.map(e => e[1]), backgroundColor: cssVar('--accent'), borderRadius: 4 }]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { display: false }, title: { display: true, text: 'Самые популярные реакции', color: cssVar('--text'), font: { size: 13, weight: '600' }, align: 'start' } },
+    scales: { x: { ticks: { font: { size: 16 } }, grid: { display: false } }, y: { grid: { color: cssVar('--border') } } }
+  }
+});
+
+document.getElementById('tiles-reply').innerHTML = [
+  ['Медиана ответа', Math.round(STATS.avg_reply_latency_minutes.median) + ' мин'],
+  ['Глубина ответов = 1', fmt(STATS.reply_depth['1'])],
+  ['Глубина ответов ≥4', fmt(STATS.reply_depth['4+'])],
+  ['Опросов создано', fmt(STATS.polls.count)],
+].map(([l,v]) => `<div class="tile"><div class="v num">${v}</div><div class="l">${l}</div></div>`).join('');
+
+(function() {
+  const byKey = Object.fromEntries(STATS.topics.map(t => [t.key, t]));
+  document.getElementById('list-reacted').innerHTML = STATS.most_reacted_messages.map(m =>
+    `<div class="quote-card"><div class="meta"><span>${esc(m.author)} · ${ruDate(m.date)}</span><span class="tag">${byKey[m.topic] ? byKey[m.topic].emoji + ' ' + byKey[m.topic].label_ru : m.topic}</span></div>
+    <div class="txt">«${esc(m.text)}» — <b class="num">${m.reactions}</b> 🔥</div></div>`).join('');
+})();
+
+(function() {
+  const rows = STATS.polls.top_by_answers.map(p =>
+    `<tr><td>${esc(p.question||'—')}</td><td>${esc(p.author)}</td><td>${ruDate(p.date)}</td><td>${p.answers.length}</td></tr>`).join('');
+  document.getElementById('table-polls').innerHTML =
+    `<thead><tr><th>Вопрос</th><th>Автор</th><th>Дата</th><th>Вариантов</th></tr></thead><tbody>${rows}</tbody>`;
+})();
+
+// ---------------- Sentiment ----------------
+const SENT = STATS.sentiment;
+const byKeyTopics = Object.fromEntries(STATS.topics.map(t => [t.key, t]));
+
+document.getElementById('sentiment-warning-text').textContent =
+  ' Чат полон дружеского троллинга и мата, которые формально читаются как негатив, ' +
+  'но по сути таковым не являются. Лексикон не понимает иронию и сарказм — читайте это ' +
+  'как грубый индикатор тренда, а не точное измерение эмоций.';
+
+document.getElementById('tiles-sentiment-mix').innerHTML = [
+  ['Позитивных сообщений', pct(SENT.mix.positive_share)],
+  ['Негативных сообщений', pct(SENT.mix.negative_share)],
+  ['Согласие текста и реакций', pct(SENT.reaction_text_agreement.agree / (SENT.reaction_text_agreement.agree + SENT.reaction_text_agreement.disagree))],
+].map(([l,v]) => `<div class="tile"><div class="v num">${v}</div><div class="l">${l}</div></div>`).join('');
+
+// Loved / hated courts
+const venues = SENT.venues;
+new Chart(document.getElementById('chart-venue-sentiment'), {
+  type: 'bar',
+  data: {
+    labels: venues.map(v => v.name),
+    datasets: [{ data: venues.map(v => v.avg_net),
+      backgroundColor: venues.map(v => v.avg_net >= 0 ? cssVar('--accent') : '#e34948'),
+      borderRadius: 4 }]
+  },
+  options: {
+    indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { display: false },
+      tooltip: { callbacks: { label: (c) => `${venues[c.dataIndex].mentions} упоминаний · ${pct(venues[c.dataIndex].positive_share)} позитив / ${pct(venues[c.dataIndex].negative_share)} негатив` } },
+      title: { display: true, text: 'Средняя тональность упоминаний (>0 — любят, <0 — жалуются)', color: cssVar('--text'), font: { size: 12.5, weight: '600' }, align: 'start' } },
+    scales: { x: { grid: { color: cssVar('--border') } }, y: { grid: { display: false } } }
+  }
+});
+
+(function() {
+  const best = venues[0], worst = venues[venues.length - 1];
+  let html = '';
+  if (best && best.best_quote) {
+    html += `<div class="venue-quote love"><div class="vname">🏆 Самый «любимый»: ${esc(best.name)}</div>
+      «${esc(best.best_quote.text)}» — ${esc(best.best_quote.author)}, ${ruDate(best.best_quote.date)}</div>`;
+  }
+  if (worst && worst.worst_quote) {
+    html += `<div class="venue-quote hate"><div class="vname">😕 Больше всего жалоб: ${esc(worst.name)}</div>
+      «${esc(worst.worst_quote.text)}» — ${esc(worst.worst_quote.author)}, ${ruDate(worst.worst_quote.date)}</div>`;
+  } else if (worst) {
+    html += `<div class="venue-quote love"><div class="vname">${esc(worst.name)}</div>Ни одного действительно негативного сообщения среди ${worst.mentions} упоминаний — даже у площадки с наименьшим средним баллом.</div>`;
+  }
+  document.getElementById('venue-quotes').innerHTML = html;
+})();
+
+// Sentiment by topic
+const sentTopics = SENT.by_topic.map(t => ({...t, label: byKeyTopics[t.key].label_ru, emoji: byKeyTopics[t.key].emoji, color: byKeyTopics[t.key].color}));
+new Chart(document.getElementById('chart-sentiment-topic'), {
+  type: 'bar',
+  data: {
+    labels: sentTopics.map(t => t.emoji + ' ' + t.label),
+    datasets: [{ data: sentTopics.map(t => t.avg_net),
+      backgroundColor: sentTopics.map(t => t.avg_net >= 0 ? t.color : '#e34948'), borderRadius: 4 }]
+  },
+  options: {
+    indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { display: false },
+      tooltip: { callbacks: { label: (c) => `${pct(sentTopics[c.dataIndex].negative_share)} негативных сообщений` } } },
+    scales: { x: { grid: { color: cssVar('--border') } }, y: { grid: { display: false }, ticks: { font: { size: 11 } } } }
+  }
+});
+
+// Sentiment over time
+new Chart(document.getElementById('chart-sentiment-month'), {
+  type: 'line',
+  data: { labels: SENT.by_month.months, datasets: [
+    { label: 'Средний балл тональности', data: SENT.by_month.avg_net, borderColor: cssVar('--accent'), backgroundColor: cssVar('--accent') + '33', fill: true, pointRadius: 0, tension: 0.3 },
+  ]},
+  options: { responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { display: false } },
+    scales: { x: { ticks: { maxTicksLimit: 14, color: cssVar('--text-muted') }, grid: { display: false } }, y: { grid: { color: cssVar('--border') } } } }
+});
+
+// Heat vs magnitude
+new Chart(document.getElementById('chart-heat-magnitude'), {
+  type: 'bar',
+  data: { labels: ['0 заряж. слов', '1', '2', '3+'],
+    datasets: [{ data: [0,1,2,'3+'].map(k => SENT.avg_reactions_by_magnitude[k]), backgroundColor: cssVar('--accent'), borderRadius: 4 }] },
+  options: { responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { display: false } },
+    scales: { x: { grid: { display: false } }, y: { grid: { color: cssVar('--border') } } } }
+});
+
+(function() {
+  document.getElementById('list-negative').innerHTML = SENT.most_negative_messages.map(m =>
+    `<div class="quote-card"><div class="meta"><span>${esc(m.author)} · ${ruDate(m.date)}</span><span class="tag" style="background:color-mix(in srgb, #e34948 18%, var(--surface)); color:#e34948;">net ${m.net}</span></div>
+    <div class="txt">«${esc(m.text)}» — <b class="num">${m.reactions}</b> 🔥</div></div>`).join('');
+  document.getElementById('list-positive').innerHTML = SENT.most_positive_messages.map(m =>
+    `<div class="quote-card"><div class="meta"><span>${esc(m.author)} · ${ruDate(m.date)}</span><span class="tag">net +${m.net}</span></div>
+    <div class="txt">«${esc(m.text)}» — <b class="num">${m.reactions}</b> 🔥</div></div>`).join('');
+})();
+
+// ---------------- Media ----------------
+new Chart(document.getElementById('chart-media'), {
+  type: 'doughnut',
+  data: {
+    labels: Object.keys(STATS.media_mix).map(k => ({text_only:'Только текст', photo:'Фото', sticker:'Стикеры', video:'Видео', poll:'Опросы', file:'Файлы', link_preview:'Ссылки'}[k] || k)),
+    datasets: [{ data: Object.values(STATS.media_mix), backgroundColor: [cssVar('--accent'),'#eb6834','#1baf7a','#eda100','#4a3aa7','#e34948','#8b8d82'], borderColor: cssVar('--surface'), borderWidth: 2 }]
+  },
+  options: { responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, color: cssVar('--text-muted'), font: { size: 11 } } },
+      title: { display: true, text: 'Из чего состоят сообщения', color: cssVar('--text'), font: { size: 13, weight: '600' }, align: 'start' } } }
+});
+
+new Chart(document.getElementById('chart-mentions'), {
+  type: 'bar',
+  data: { labels: STATS.mentions_top.slice(0,12).map(m => m[0]), datasets: [{ data: STATS.mentions_top.slice(0,12).map(m => m[1]), backgroundColor: cssVar('--accent'), borderRadius: 4 }] },
+  options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { display: false }, title: { display: true, text: 'Самые часто упоминаемые @ники', color: cssVar('--text'), font: { size: 13, weight: '600' }, align: 'start' } },
+    scales: { x: { grid: { color: cssVar('--border') } }, y: { grid: { display: false }, ticks: { font: { size: 11 } } } } }
+});
+
+// ---------------- Bot ----------------
+document.getElementById('bot-total').textContent = fmt(STATS.bot.total);
+new Chart(document.getElementById('chart-bot-month'), {
+  type: 'line',
+  data: { labels: STATS.bot.matches_by_month.months, datasets: [{ data: STATS.bot.matches_by_month.counts, borderColor: cssVar('--accent'), backgroundColor: cssVar('--accent') + '33', fill: true, pointRadius: 0, tension: 0.25 }] },
+  options: { responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { display: false }, title: { display: true, text: 'Внесённые матчи по месяцам', color: cssVar('--text'), font: { size: 13, weight: '600' }, align: 'start' } },
+    scales: { x: { ticks: { maxTicksLimit: 12, color: cssVar('--text-muted') }, grid: { display: false } }, y: { grid: { color: cssVar('--border') } } } }
+});
+new Chart(document.getElementById('chart-bot-city'), {
+  type: 'doughnut',
+  data: { labels: Object.keys(STATS.bot.matches_by_city), datasets: [{ data: Object.values(STATS.bot.matches_by_city), backgroundColor: [cssVar('--accent'),'#eb6834','#4a3aa7','#8b8d82'], borderColor: cssVar('--surface'), borderWidth: 2 }] },
+  options: { responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, color: cssVar('--text-muted') } },
+      title: { display: true, text: 'Матчи по городам', color: cssVar('--text'), font: { size: 13, weight: '600' }, align: 'start' } } }
+});
+new Chart(document.getElementById('chart-bot-players'), {
+  type: 'bar',
+  data: { labels: STATS.bot.most_active_players.map(p => p[0]), datasets: [{ data: STATS.bot.most_active_players.map(p => p[1]), backgroundColor: cssVar('--accent'), borderRadius: 4 }] },
+  options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { display: false }, title: { display: true, text: 'Больше всего сыгранных рейтинговых матчей', color: cssVar('--text'), font: { size: 13, weight: '600' }, align: 'start' } },
+    scales: { x: { grid: { color: cssVar('--border') } }, y: { grid: { display: false }, ticks: { font: { size: 11 } } } } }
+});
+
+// ---------------- Bot match scores ----------------
+const MS = STATS.bot.match_scores;
+document.getElementById('ms-parsed').textContent = fmt(MS.parsed_total);
+document.getElementById('ms-total').textContent = fmt(STATS.bot.by_kind.match_result || (MS.parsed_total + 785));
+
+document.getElementById('list-discussed-matches').innerHTML = MS.most_discussed_matches.map(m => {
+  const doublesTag = m.is_doubles ? '<span class="tag" style="background:var(--surface-2); color:var(--text-muted);">пара</span> ' : '';
+  return `<div class="quote-card"><div class="meta"><span>${ruDate(m.date)}${m.city ? ' · ' + esc(m.city) : ''}</span><span>${doublesTag}<b class="num">${m.discussion}</b> отклик${m.discussion===1?'':'ов'}</span></div>
+  <div class="txt"><b>${esc(m.winner)}</b> обыграл${/[ая]$/.test(m.winner) ? 'а' : ''} <b>${esc(m.loser)}</b> — ${esc(m.score)} <span style="color:var(--text-faint)">(${m.reactions} реакц., ${m.replies} ответ${m.replies===1?'':'ов'})</span></div></div>`;
+}).join('');
+
+new Chart(document.getElementById('chart-score-discussion'), {
+  type: 'bar',
+  data: {
+    labels: MS.score_vs_discussion.map(b => b.bucket),
+    datasets: [{ data: MS.score_vs_discussion.map(b => b.avg_discussion), backgroundColor: cssVar('--accent'), borderRadius: 4 }]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { display: false },
+      tooltip: { callbacks: { label: (c) => `${fmt(MS.score_vs_discussion[c.dataIndex].count)} матчей` } } },
+    scales: { x: { grid: { display: false } }, y: { grid: { color: cssVar('--border') }, title: { display: true, text: 'Ср. откликов на матч', color: cssVar('--text-muted') } } }
+  }
+});
+(function() {
+  const sorted = [...MS.score_vs_discussion].sort((a,b) => b.avg_discussion - a.avg_discussion);
+  const top = sorted[0], bottom = sorted[sorted.length-1];
+  document.getElementById('score-discussion-caption').textContent =
+    `«${top.bucket}» собирает больше всего откликов (${top.avg_discussion.toFixed(1)} на матч) — больше, чем «${bottom.bucket}» (${bottom.avg_discussion.toFixed(1)}). Счёт сам по себе не гарантирует внимание чата, но напряжённая концовка — почти всегда.`;
+})();
+
+document.getElementById('table-rivalries').innerHTML =
+  `<thead><tr><th>Пара</th><th>Матчей</th><th>Счёт</th><th>Откликов/матч</th><th>Последняя встреча</th></tr></thead><tbody>` +
+  MS.rivalries_by_count.map(r => `<tr><td>${esc(r.player_a)} — ${esc(r.player_b)}</td><td class="num">${r.matches}</td>
+    <td class="num">${r.wins_a}–${r.wins_b}</td><td class="num">${r.avg_discussion.toFixed(1)}</td>
+    <td>${ruDate(r.last_date)}, ${esc(r.last_score)}</td></tr>`).join('') + `</tbody>`;
+
+(function() {
+  const loud = MS.rivalries_by_discussion[0];
+  const close = MS.rivalries_closest[0];
+  if (loud) {
+    document.getElementById('rivalry-loudest').innerHTML =
+      `<div style="font-size:12px; text-transform:uppercase; letter-spacing:.08em; color:var(--text-faint); font-weight:600; margin-bottom:6px;">📣 Самое обсуждаемое противостояние</div>
+      <div style="font-weight:600; font-size:15px;">${esc(loud.player_a)} vs ${esc(loud.player_b)}</div>
+      <div class="caption" style="margin-top:6px;">${loud.matches} матчей, счёт ${loud.wins_a}–${loud.wins_b}, в среднем ${loud.avg_discussion.toFixed(1)} откликов на игру — почти вчетверо больше, чем в среднем по всем матчам (${MS.avg_discussion_overall.toFixed(1)}).</div>`;
+  }
+  if (close) {
+    document.getElementById('rivalry-closest').innerHTML =
+      `<div style="font-size:12px; text-transform:uppercase; letter-spacing:.08em; color:var(--text-faint); font-weight:600; margin-bottom:6px;">⚖️ Самое равное соперничество</div>
+      <div style="font-weight:600; font-size:15px;">${esc(close.player_a)} vs ${esc(close.player_b)}</div>
+      <div class="caption" style="margin-top:6px;">${close.matches} матчей, счёт ${close.wins_a}–${close.wins_b}, в среднем всего ${close.avg_game_diff.toFixed(1)} гейма разницы за сет — самая ровная пара из тех, кто играл друг с другом ≥3 раз.</div>`;
+  }
+})();
+
+// ---------------- Vocabulary ----------------
+(function() {
+  const words = STATS.top_words.slice(0, 45);
+  const max = Math.max(...words.map(w => w[1])), min = Math.min(...words.map(w => w[1]));
+  document.getElementById('word-cloud').innerHTML = words.map(([w,c]) => {
+    const size = 12 + 26 * ((c - min) / (max - min || 1));
+    const op = 0.55 + 0.45 * ((c - min) / (max - min || 1));
+    return `<span style="font-size:${size.toFixed(0)}px; color: color-mix(in srgb, var(--accent-ink) ${(op*100).toFixed(0)}%, var(--text-faint))" title="${c}">${esc(w)}</span>`;
+  }).join(' ');
+})();
+
+new Chart(document.getElementById('chart-venues'), {
+  type: 'bar',
+  data: { labels: Object.keys(STATS.venue_mentions), datasets: [{ data: Object.values(STATS.venue_mentions), backgroundColor: cssVar('--accent'), borderRadius: 4 }] },
+  options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { display: false } },
+    scales: { x: { grid: { color: cssVar('--border') } }, y: { grid: { display: false }, ticks: { font: { size: 11 } } } } }
+});
+new Chart(document.getElementById('chart-pros'), {
+  type: 'bar',
+  data: { labels: STATS.pro_player_mentions.map(p=>p[0]), datasets: [{ data: STATS.pro_player_mentions.map(p=>p[1]), backgroundColor: '#eb6834', borderRadius: 4 }] },
+  options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { display: false } },
+    scales: { x: { grid: { color: cssVar('--border') } }, y: { grid: { display: false }, ticks: { font: { size: 11 } } } } }
+});
+
+// ---------------- Methodology ----------------
+function renderMd(md) {
+  return md.split('\n\n').map(p => '<p>' + esc(p).replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>').replace(/\n/g,' ') + '</p>').join('');
+}
+document.getElementById('notes-text').innerHTML = renderMd(STATS.notes) +
+  '<h3 style="font-size:16px; margin-top:20px;">Тональность (раздел «Эмоции»)</h3>' + renderMd(STATS.sentiment_notes) +
+  '<h3 style="font-size:16px; margin-top:20px;">Разбор счёта (раздел «Теннис Бот»)</h3>' + renderMd(STATS.bot_matches_notes);
+
+(function() {
+  const byKey = Object.fromEntries(STATS.topics.map(t => [t.key, t]));
+  const rows = Object.entries(STATS.precision).map(([k,v]) => {
+    const t = byKey[k];
+    const p = v.correct / v.total;
+    return `<tr><td>${t.emoji} ${t.label_ru}</td><td class="num">${v.correct}/${v.total}</td>
+      <td><div class="precision-bar"><div style="width:${(p*100).toFixed(0)}%"></div></div> ${pct(p,0)}</td></tr>`;
+  }).sort((a,b) => 0).join('');
+  document.getElementById('table-precision').innerHTML =
+    `<thead><tr><th>Тема</th><th>Верно</th><th>Точность</th></tr></thead><tbody>${rows}</tbody>`;
+})();
+</script>
+</body>
+</html>
